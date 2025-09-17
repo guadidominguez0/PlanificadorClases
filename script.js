@@ -6,19 +6,126 @@ class EnglishClassPlanner {
         this.renderClasses();
         this.setTodayAsDefault();
         this.addInitialActivity();
+        this.showStorageInfo();
+    }
+
+    showStorageInfo() {
+        const classesSize = JSON.stringify(this.classes).length;
+        const filesSize = JSON.stringify(Object.fromEntries(this.fileStorage)).length;
+        const totalSize = classesSize + filesSize;
+        
+        console.log('📊 Información de almacenamiento:');
+        console.log(`- Clases: ${(classesSize / 1024).toFixed(2)} KB`);
+        console.log(`- Archivos: ${(filesSize / 1024).toFixed(2)} KB`);
+        console.log(`- Total: ${(totalSize / 1024).toFixed(2)} KB`);
+        console.log(`- Clases guardadas: ${this.classes.length}`);
+        console.log(`- Archivos guardados: ${this.fileStorage.size}`);
+        
+        // Update UI elements if they exist
+        const classCountEl = document.getElementById('classCount');
+        const fileCountEl = document.getElementById('fileCount');
+        const storageSizeEl = document.getElementById('storageSize');
+        
+        if (classCountEl) classCountEl.textContent = this.classes.length;
+        if (fileCountEl) fileCountEl.textContent = this.fileStorage.size;
+        if (storageSizeEl) storageSizeEl.textContent = `${(totalSize / 1024).toFixed(2)} KB`;
+    }
+
+    // Export data for backup
+    exportData() {
+        const data = {
+            classes: this.classes,
+            files: Object.fromEntries(this.fileStorage),
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json'
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `english-classes-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('📥 Datos exportados exitosamente', 'success');
+    }
+
+    // Import data from backup
+    importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                if (data.classes && Array.isArray(data.classes)) {
+                    this.classes = data.classes.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    this.saveClasses();
+                }
+                
+                if (data.files && typeof data.files === 'object') {
+                    this.fileStorage = new Map(Object.entries(data.files));
+                    this.saveFileStorage();
+                }
+                
+                this.renderClasses();
+                this.showNotification('📤 Datos importados exitosamente', 'success');
+                this.showStorageInfo();
+                
+            } catch (error) {
+                this.showNotification('❌ Error al importar datos: archivo inválido', 'error');
+                console.error('Import error:', error);
+            }
+        };
+        
+        reader.readAsText(file);
+    }
+
+    // Clear all data
+    clearAllData() {
+        if (confirm('⚠️ ¿Estás seguro de que deseas eliminar TODOS los datos? Esta acción no se puede deshacer.')) {
+            localStorage.removeItem('englishClasses');
+            localStorage.removeItem('englishClassFiles');
+            this.classes = [];
+            this.fileStorage = new Map();
+            this.renderClasses();
+            this.showNotification('🗑️ Todos los datos han sido eliminados', 'warning');
+        }
     }
 
     loadClasses() {
-        const stored = JSON.parse(sessionStorage.getItem('englishClasses') || '[]');
+        const stored = JSON.parse(localStorage.getItem('englishClasses') || '[]');
         return stored.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
     loadFileStorage() {
-        return new Map();
+        const storedFiles = JSON.parse(localStorage.getItem('englishClassFiles') || '{}');
+        const fileMap = new Map();
+        
+        // Convert stored object back to Map
+        Object.keys(storedFiles).forEach(key => {
+            fileMap.set(key, storedFiles[key]);
+        });
+        
+        return fileMap;
     }
 
     saveClasses() {
-        sessionStorage.setItem('englishClasses', JSON.stringify(this.classes));
+        localStorage.setItem('englishClasses', JSON.stringify(this.classes));
+    }
+
+    saveFileStorage() {
+        // Convert Map to object for storage
+        const fileObject = {};
+        this.fileStorage.forEach((value, key) => {
+            fileObject[key] = value;
+        });
+        localStorage.setItem('englishClassFiles', JSON.stringify(fileObject));
     }
 
     setTodayAsDefault() {
@@ -80,6 +187,7 @@ class EnglishClassPlanner {
             };
 
             this.fileStorage.set(fileId, fileData);
+            this.saveFileStorage(); // Save to localStorage
             this.addFileToActivity(activityElement, fileData);
             this.showNotification('✅ Archivo subido exitosamente', 'success');
         };
@@ -226,6 +334,7 @@ class EnglishClassPlanner {
         this.saveClasses();
         this.renderClasses();
         this.resetForm();
+        this.showStorageInfo(); // Update storage info
         
         this.showNotification('✅ Clase guardada exitosamente', 'success');
         
@@ -342,11 +451,15 @@ class EnglishClassPlanner {
         if (confirm('¿Estás seguro de que deseas eliminar esta clase?')) {
             const classData = this.classes.find(c => c.id === id);
             if (classData) {
+                // Remove associated files from storage
                 classData.activities.forEach(activity => {
-                    activity.files.forEach(file => {
-                        this.fileStorage.delete(file.id);
-                    });
+                    if (activity.files) {
+                        activity.files.forEach(file => {
+                            this.fileStorage.delete(file.id);
+                        });
+                    }
                 });
+                this.saveFileStorage(); // Update localStorage
             }
             
             this.classes = this.classes.filter(c => c.id !== id);
@@ -621,6 +734,7 @@ function handleFileSelect(input) {
 function removeFile(button, fileId) {
     if (planner) {
         planner.fileStorage.delete(fileId);
+        planner.saveFileStorage(); // Save to localStorage
         button.closest('.file-item').remove();
         planner.showNotification('🗑️ Archivo eliminado', 'info');
     }
@@ -654,6 +768,7 @@ function removeActivity(button) {
                 const fileId = fileItem.dataset.fileId;
                 planner.fileStorage.delete(fileId);
             });
+            planner.saveFileStorage(); // Save to localStorage
         }
         
         button.closest('.activity-item').remove();
@@ -728,6 +843,14 @@ function getDomainFromUrl(url) {
         return new URL(url).hostname;
     } catch {
         return url;
+    }
+}
+
+function handleImport(input) {
+    const file = input.files[0];
+    if (file && planner) {
+        planner.importData(file);
+        input.value = ''; // Clear the input
     }
 }
 

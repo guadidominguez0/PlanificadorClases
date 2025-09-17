@@ -22,6 +22,9 @@
             <button class="tab-button" onclick="switchTab('view')" data-tab="view">
                 📚 Ver Clases
             </button>
+            <button class="tab-button" onclick="switchTab('settings')" data-tab="settings">
+                ⚙️ Configuración
+            </button>
         </div>
 
         <!-- Create Class Tab -->
@@ -66,6 +69,58 @@
                 <div id="classesList" class="classes-grid">
                     <div class="empty-state">
                         <p>No tienes clases planificadas aún.<br>¡Crea tu primera clase de inglés!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settingsTab" class="tab-content">
+            <div class="card">
+                <h2>⚙️ Configuración y Respaldos</h2>
+                
+                <div class="settings-section">
+                    <h3>📊 Información de Almacenamiento</h3>
+                    <div id="storageInfo" class="storage-info">
+                        <div class="storage-stat">
+                            <span class="stat-label">Clases guardadas:</span>
+                            <span id="classCount" class="stat-value">0</span>
+                        </div>
+                        <div class="storage-stat">
+                            <span class="stat-label">Archivos guardados:</span>
+                            <span id="fileCount" class="stat-value">0</span>
+                        </div>
+                        <div class="storage-stat">
+                            <span class="stat-label">Espacio usado:</span>
+                            <span id="storageSize" class="stat-value">0 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>💾 Gestión de Datos</h3>
+                    <div class="backup-controls">
+                        <button class="btn btn-secondary" onclick="planner.exportData()">
+                            📥 Exportar Datos
+                        </button>
+                        <div class="import-section">
+                            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(this)">
+                            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                                📤 Importar Datos
+                            </button>
+                        </div>
+                        <button class="btn btn-danger" onclick="planner.clearAllData()">
+                            🗑️ Eliminar Todo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>ℹ️ Acerca de</h3>
+                    <div class="app-info">
+                        <p><strong>English Class Planner v1.0</strong></p>
+                        <p>Planificador de clases de inglés con almacenamiento local persistente.</p>
+                        <p>Los datos se guardan automáticamente en tu navegador y permanecen disponibles entre sesiones.</p>
                     </div>
                 </div>
             </div>

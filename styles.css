@@ -1069,3 +1069,130 @@ textarea {
         grid-template-columns: 1fr;
     }
 }
+
+/* Settings Tab Styles */
+.settings-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.storage-info {
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid rgba(0, 122, 255, 0.1);
+}
+
+.storage-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.storage-stat:last-child {
+    margin-bottom: 0;
+}
+
+.stat-label {
+    font-weight: 500;
+    color: #6e6e73;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #007aff;
+    font-size: 1.1rem;
+}
+
+.backup-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.backup-controls .btn {
+    flex: 1;
+    min-width: 150px;
+}
+
+.import-section {
+    flex: 1;
+    min-width: 150px;
+}
+
+.app-info {
+    background: rgba(248, 250, 252, 0.6);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid #34c759;
+}
+
+.app-info p {
+    margin-bottom: 0.5rem;
+    color: #1d1d1f;
+}
+
+.app-info p:last-child {
+    margin-bottom: 0;
+    color: #6e6e73;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .tab-navigation {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .class-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .activity-type-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .activity-type-select {
+        min-width: auto;
+    }
+
+    .resource-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .backup-controls {
+        flex-direction: column;
+    }
+
+    .backup-controls .btn {
+        min-width: auto;
+    }
+}
