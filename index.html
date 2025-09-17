@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>English Class Planner</h1>
+            <h1>🇬🇧 English Class Planner</h1>
             <p class="subtitle">Plan your English classes with style and precision</p>
         </header>
 
@@ -55,7 +55,13 @@
         <!-- View Classes Tab -->
         <div id="viewTab" class="tab-content">
             <div class="card">
-                <h2>📚 Mis Clases de Inglés</h2>
+                <div class="classes-header">
+                    <h2>📚 Mis Clases de Inglés</h2>
+                    <button id="expandAllBtn" class="expand-all-btn" onclick="toggleAllClasses()">
+                        <span id="expandAllIcon">📖</span>
+                        <span id="expandAllText">Expandir todas</span>
+                    </button>
+                </div>
                 <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar en clases...">
                 <div id="classesList" class="classes-grid">
                     <div class="empty-state">

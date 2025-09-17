@@ -707,6 +707,39 @@ textarea {
     box-shadow: 0 8px 24px rgba(52, 199, 89, 0.4);
 }
 
+.classes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.classes-header h2 {
+    margin: 0;
+}
+
+.expand-all-btn {
+    background: linear-gradient(135deg, #34c759 0%, #30b753 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 3px 12px rgba(52, 199, 89, 0.25);
+}
+
+.expand-all-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 199, 89, 0.35);
+    background: linear-gradient(135deg, #30b753 0%, #28a745 100%);
+}
+
 .search-box {
     width: 100%;
     padding: 1rem 1.5rem;
@@ -736,6 +769,58 @@ textarea {
 .class-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.class-item.compressed {
+    padding: 1rem 1.5rem;
+}
+
+.class-item.compressed .activities-list,
+.class-item.compressed .homework-section,
+.class-item.compressed .class-actions {
+    display: none;
+}
+
+.class-item.compressed .class-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.expand-toggle-btn {
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+.expand-toggle-btn:hover {
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    background: linear-gradient(135deg, #0051d5 0%, #003d9a 100%);
+}
+
+.class-summary {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(248, 248, 248, 0.6);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #6e6e73;
+}
+
+.class-item.compressed .class-summary {
+    display: block;
 }
 
 .class-header {

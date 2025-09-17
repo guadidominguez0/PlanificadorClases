@@ -473,13 +473,31 @@ class EnglishClassPlanner {
                 `
                 : '';
 
+            // Create summary for compressed view
+            const activitiesCount = classData.activities.length;
+            const activityTypes = [...new Set(classData.activities.map(a => a.type))];
+            const hasHomework = classData.homework ? true : false;
+            const totalResources = classData.activities.reduce((total, activity) => {
+                return total + (activity.files?.length || 0) + (activity.links?.length || 0);
+            }, 0);
+
+            const summaryText = `${activitiesCount} actividad${activitiesCount !== 1 ? 'es' : ''} • Tipos: ${activityTypes.join(', ')}${totalResources > 0 ? ` • ${totalResources} recurso${totalResources !== 1 ? 's' : ''}` : ''}${hasHomework ? ' • Con tarea' : ''}`;
+
             return `
-                <div class="class-item fade-in">
+                <div class="class-item compressed fade-in" data-class-id="${classData.id}">
                     <div class="class-header">
                         <div class="class-date-title">
                             <span class="class-weekday">${dateInfo.weekday}</span>
                             ${dateInfo.full}
                         </div>
+                        <button class="expand-toggle-btn" onclick="toggleClassExpansion('${classData.id}')">
+                            <span class="toggle-icon">👁️</span>
+                            <span class="toggle-text">Ver detalles</span>
+                        </button>
+                    </div>
+                    
+                    <div class="class-summary">
+                        ${summaryText}
                     </div>
                     
                     <div class="activities-list">
@@ -710,6 +728,83 @@ function getDomainFromUrl(url) {
         return new URL(url).hostname;
     } catch {
         return url;
+    }
+}
+
+function toggleAllClasses() {
+    const allClassItems = document.querySelectorAll('.class-item');
+    const expandAllBtn = document.getElementById('expandAllBtn');
+    const expandAllIcon = document.getElementById('expandAllIcon');
+    const expandAllText = document.getElementById('expandAllText');
+    
+    if (allClassItems.length === 0) return;
+    
+    const firstClassIsCompressed = allClassItems[0].classList.contains('compressed');
+    
+    if (firstClassIsCompressed) {
+        // Expand all
+        allClassItems.forEach((classItem, index) => {
+            setTimeout(() => {
+                const classId = classItem.dataset.classId;
+                if (classItem.classList.contains('compressed')) {
+                    toggleClassExpansion(classId);
+                }
+            }, index * 100);
+        });
+        
+        expandAllIcon.textContent = '📑';
+        expandAllText.textContent = 'Comprimir todas';
+        
+    } else {
+        // Compress all
+        allClassItems.forEach((classItem, index) => {
+            setTimeout(() => {
+                const classId = classItem.dataset.classId;
+                if (!classItem.classList.contains('compressed')) {
+                    toggleClassExpansion(classId);
+                }
+            }, index * 50);
+        });
+        
+        expandAllIcon.textContent = '📖';
+        expandAllText.textContent = 'Expandir todas';
+    }
+}
+
+function toggleClassExpansion(classId) {
+    const classItem = document.querySelector(`[data-class-id="${classId}"]`);
+    const toggleBtn = classItem.querySelector('.expand-toggle-btn');
+    const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+    const toggleText = toggleBtn.querySelector('.toggle-text');
+    
+    if (classItem.classList.contains('compressed')) {
+        // Expand
+        classItem.classList.remove('compressed');
+        toggleIcon.textContent = '🔼';
+        toggleText.textContent = 'Comprimir';
+        
+        // Animate expansion
+        const hiddenElements = classItem.querySelectorAll('.activities-list, .homework-section, .class-actions');
+        hiddenElements.forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-10px)';
+        });
+        
+        setTimeout(() => {
+            hiddenElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.transition = 'all 0.3s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }, 50);
+        
+    } else {
+        // Compress
+        classItem.classList.add('compressed');
+        toggleIcon.textContent = '👁️';
+        toggleText.textContent = 'Ver detalles';
     }
 }
 
