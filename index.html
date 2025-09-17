@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Class Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>English Class Planner</h1>
+            <p class="subtitle">Plan your English classes with style and precision</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('create')" data-tab="create">
+                ➕ Crear Clase
+            </button>
+            <button class="tab-button" onclick="switchTab('view')" data-tab="view">
+                📚 Ver Clases
+            </button>
+        </div>
+
+        <!-- Create Class Tab -->
+        <div id="createTab" class="tab-content active">
+            <div class="card">
+                <h2>📝 Nueva Clase</h2>
+                <form id="classForm">
+                    <div class="form-group">
+                        <label for="classDate">Fecha de la Clase</label>
+                        <input type="date" id="classDate" required>
+                    </div>
+
+                    <div class="form-group activities-section">
+                        <label>Actividades de la Clase</label>
+                        <div id="activitiesList">
+                            <!-- Las actividades se generan dinámicamente -->
+                        </div>
+                        <button type="button" class="add-activity" onclick="addActivity()">+ Agregar Actividad</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="homework">Tarea (Homework)</label>
+                        <textarea id="homework" placeholder="Ej: Make a question with each verb"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">💾 Guardar Clase</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View Classes Tab -->
+        <div id="viewTab" class="tab-content">
+            <div class="card">
+                <h2>📚 Mis Clases de Inglés</h2>
+                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar en clases...">
+                <div id="classesList" class="classes-grid">
+                    <div class="empty-state">
+                        <p>No tienes clases planificadas aún.<br>¡Crea tu primera clase de inglés!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Vista previa</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- File preview content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
