@@ -48,6 +48,41 @@
                     <div class="form-group">
                         <label for="homework">Tarea (Homework)</label>
                         <textarea id="homework" placeholder="Ej: Make a question with each verb"></textarea>
+                        
+                        <!-- Homework Resources Section -->
+                        <button type="button" class="add-resource-trigger homework-resources-trigger" onclick="toggleHomeworkResources()">
+                            📎 Agregar recursos para la tarea
+                        </button>
+                        <div id="homeworkResourcesSection" class="resources-main-section">
+                            <div class="resource-type-selector">
+                                <button type="button" class="resource-type-btn active" onclick="toggleHomeworkResourceType(this, 'file')">
+                                    📎 Subir archivo
+                                </button>
+                                <button type="button" class="resource-type-btn" onclick="toggleHomeworkResourceType(this, 'link')">
+                                    🔗 Agregar enlace
+                                </button>
+                            </div>
+                            
+                            <div class="file-upload-section">
+                                <div class="file-upload-area" onclick="triggerHomeworkFileInput()">
+                                    <input type="file" id="homeworkFileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleHomeworkFileSelect(this)">
+                                    <div class="file-upload-text">📎 Subir archivos</div>
+                                    <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
+                                </div>
+                                <div id="homeworkUploadedFiles" class="uploaded-files"></div>
+                            </div>
+                            
+                            <div class="link-upload-section" style="display: none;">
+                                <div class="add-resource-section">
+                                    <div class="resource-inputs">
+                                        <input type="text" id="homeworkResourceName" placeholder="Nombre del recurso">
+                                        <input type="url" id="homeworkResourceUrl" placeholder="https://...">
+                                    </div>
+                                    <button type="button" class="add-resource-btn" onclick="addHomeworkLinkResource()">📎 Agregar Enlace</button>
+                                </div>
+                                <div id="homeworkLinkResourcesList" class="link-resources-list"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn">💾 Guardar Clase</button>
@@ -123,6 +158,19 @@
                         <p>Los datos se guardan automáticamente en tu navegador y permanecen disponibles entre sesiones.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Detail Modal -->
+    <div id="classDetailModal" class="modal class-detail-modal">
+        <div class="modal-content class-detail-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="classDetailTitle">Detalles de la Clase</h3>
+                <button class="modal-close" onclick="closeClassDetailModal()">×</button>
+            </div>
+            <div class="modal-body" id="classDetailBody">
+                <!-- Class detail content will be inserted here -->
             </div>
         </div>
     </div>

@@ -2,6 +2,7 @@ class EnglishClassPlanner {
     constructor() {
         this.classes = this.loadClasses();
         this.fileStorage = this.loadFileStorage();
+        this.homeworkResources = { files: [], links: [] };
         this.initializeEventListeners();
         this.renderClasses();
         this.setTodayAsDefault();
@@ -21,7 +22,6 @@ class EnglishClassPlanner {
         console.log(`- Clases guardadas: ${this.classes.length}`);
         console.log(`- Archivos guardados: ${this.fileStorage.size}`);
         
-        // Update UI elements if they exist
         const classCountEl = document.getElementById('classCount');
         const fileCountEl = document.getElementById('fileCount');
         const storageSizeEl = document.getElementById('storageSize');
@@ -31,7 +31,6 @@ class EnglishClassPlanner {
         if (storageSizeEl) storageSizeEl.textContent = `${(totalSize / 1024).toFixed(2)} KB`;
     }
 
-    // Export data for backup
     exportData() {
         const data = {
             classes: this.classes,
@@ -56,7 +55,6 @@ class EnglishClassPlanner {
         this.showNotification('📥 Datos exportados exitosamente', 'success');
     }
 
-    // Import data from backup
     importData(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -86,14 +84,14 @@ class EnglishClassPlanner {
         reader.readAsText(file);
     }
 
-    // Clear all data
     clearAllData() {
         if (confirm('⚠️ ¿Estás seguro de que deseas eliminar TODOS los datos? Esta acción no se puede deshacer.')) {
-            localStorage.removeItem('englishClasses');
-            localStorage.removeItem('englishClassFiles');
+            this.fileStorage.clear();
             this.classes = [];
-            this.fileStorage = new Map();
+            this.saveClasses();
+            this.saveFileStorage();
             this.renderClasses();
+            this.showStorageInfo();
             this.showNotification('🗑️ Todos los datos han sido eliminados', 'warning');
         }
     }
@@ -107,7 +105,6 @@ class EnglishClassPlanner {
         const storedFiles = JSON.parse(localStorage.getItem('englishClassFiles') || '{}');
         const fileMap = new Map();
         
-        // Convert stored object back to Map
         Object.keys(storedFiles).forEach(key => {
             fileMap.set(key, storedFiles[key]);
         });
@@ -120,7 +117,6 @@ class EnglishClassPlanner {
     }
 
     saveFileStorage() {
-        // Convert Map to object for storage
         const fileObject = {};
         this.fileStorage.forEach((value, key) => {
             fileObject[key] = value;
@@ -154,6 +150,60 @@ class EnglishClassPlanner {
                 this.closeModal();
             }
         });
+
+        document.getElementById('classDetailModal').addEventListener('click', (e) => {
+            if (e.target.id === 'classDetailModal') {
+                this.closeClassDetailModal();
+            }
+        });
+
+        // Setup homework drag and drop
+        this.setupHomeworkDragAndDrop();
+    }
+
+    setupHomeworkDragAndDrop() {
+        const homeworkUploadArea = document.querySelector('#homeworkResourcesSection .file-upload-area');
+        if (homeworkUploadArea) {
+            this.setupDragAndDropForElement(homeworkUploadArea, 'homework');
+        }
+    }
+
+    setupDragAndDropForElement(uploadArea, type = 'activity') {
+        const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
+        
+        events.forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('dragover');
+            });
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            const files = Array.from(e.dataTransfer.files);
+            
+            if (type === 'homework') {
+                files.forEach(file => {
+                    this.handleHomeworkFileUpload(file);
+                });
+            } else {
+                const activityElement = uploadArea.closest('.activity-item');
+                files.forEach(file => {
+                    this.handleFileUpload(file, activityElement);
+                });
+            }
+        });
     }
 
     generateFileId() {
@@ -161,7 +211,7 @@ class EnglishClassPlanner {
     }
 
     handleFileUpload(file, activityElement) {
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        const maxSize = 10 * 1024 * 1024;
         
         if (file.size > maxSize) {
             this.showNotification('⚠️ El archivo es demasiado grande (máx. 10MB)', 'warning');
@@ -187,8 +237,43 @@ class EnglishClassPlanner {
             };
 
             this.fileStorage.set(fileId, fileData);
-            this.saveFileStorage(); // Save to localStorage
+            this.saveFileStorage();
             this.addFileToActivity(activityElement, fileData);
+            this.showNotification('✅ Archivo subido exitosamente', 'success');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    handleHomeworkFileUpload(file) {
+        const maxSize = 10 * 1024 * 1024;
+        
+        if (file.size > maxSize) {
+            this.showNotification('⚠️ El archivo es demasiado grande (máx. 10MB)', 'warning');
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            this.showNotification('⚠️ Tipo de archivo no permitido', 'warning');
+            return;
+        }
+
+        const fileId = this.generateFileId();
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const fileData = {
+                id: fileId,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: e.target.result
+            };
+
+            this.fileStorage.set(fileId, fileData);
+            this.saveFileStorage();
+            this.addFileToHomework(fileData);
             this.showNotification('✅ Archivo subido exitosamente', 'success');
         };
 
@@ -197,14 +282,34 @@ class EnglishClassPlanner {
 
     addFileToActivity(activityElement, fileData) {
         const uploadedFiles = activityElement.querySelector('.uploaded-files');
+        const fileItem = this.createDraggableFileItem(fileData);
+        uploadedFiles.appendChild(fileItem);
+    }
+
+    addFileToHomework(fileData) {
+        const uploadedFiles = document.getElementById('homeworkUploadedFiles');
+        const fileItem = this.createDraggableFileItem(fileData, 'homework');
+        uploadedFiles.appendChild(fileItem);
+        
+        this.homeworkResources.files.push({
+            id: fileData.id,
+            name: fileData.name,
+            type: fileData.type,
+            size: fileData.size
+        });
+    }
+
+    createDraggableFileItem(fileData, type = 'activity') {
         const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
+        fileItem.className = 'file-item draggable';
         fileItem.dataset.fileId = fileData.id;
+        fileItem.draggable = true;
 
         const fileIcon = this.getFileIcon(fileData.type);
         const fileSize = this.formatFileSize(fileData.size);
 
         fileItem.innerHTML = `
+            <div class="drag-handle">⋮⋮</div>
             <div class="file-info">
                 <span class="file-icon">${fileIcon}</span>
                 <div class="file-details">
@@ -214,11 +319,102 @@ class EnglishClassPlanner {
             </div>
             <div class="file-actions">
                 <button class="file-preview-btn" onclick="previewFile('${fileData.id}')" title="Ver archivo">👁️</button>
-                <button class="file-remove-btn" onclick="removeFile(this, '${fileData.id}')" title="Eliminar">🗑️</button>
+                <button class="file-remove-btn" onclick="${type === 'homework' ? 'removeHomeworkFile' : 'removeFile'}(this, '${fileData.id}')" title="Eliminar">🗑️</button>
             </div>
         `;
 
-        uploadedFiles.appendChild(fileItem);
+        this.makeDraggable(fileItem, type);
+        return fileItem;
+    }
+
+    makeDraggable(element, type) {
+        element.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', element.dataset.fileId);
+            element.classList.add('dragging');
+        });
+
+        element.addEventListener('dragend', () => {
+            element.classList.remove('dragging');
+        });
+
+        const container = element.closest('.uploaded-files');
+        if (container) {
+            this.makeSortable(container, type);
+        }
+    }
+
+    makeSortable(container, type) {
+        if (container.sortableInitialized) return;
+        container.sortableInitialized = true;
+
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const dragging = container.querySelector('.dragging');
+            const siblings = [...container.querySelectorAll('.file-item:not(.dragging)')];
+            
+            const nextSibling = siblings.find(sibling => {
+                return e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2;
+            });
+
+            container.insertBefore(dragging, nextSibling);
+        });
+
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (type === 'homework') {
+                this.updateHomeworkResourcesOrder();
+            }
+        });
+    }
+
+    makeActivityDraggable(activityElement) {
+        activityElement.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', activityElement.dataset.activityId);
+            activityElement.classList.add('dragging-activity');
+        });
+
+        activityElement.addEventListener('dragend', () => {
+            activityElement.classList.remove('dragging-activity');
+        });
+    }
+
+    makeActivitiesListSortable() {
+        const activitiesList = document.getElementById('activitiesList');
+        if (activitiesList.sortableInitialized) return;
+        activitiesList.sortableInitialized = true;
+
+        activitiesList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const dragging = activitiesList.querySelector('.dragging-activity');
+            if (!dragging) return;
+            
+            const siblings = [...activitiesList.querySelectorAll('.activity-item:not(.dragging-activity)')];
+            
+            const nextSibling = siblings.find(sibling => {
+                const rect = sibling.getBoundingClientRect();
+                return e.clientY <= rect.top + rect.height / 2;
+            });
+
+            activitiesList.insertBefore(dragging, nextSibling);
+        });
+
+        activitiesList.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+    }
+
+    updateHomeworkResourcesOrder() {
+        const fileItems = document.querySelectorAll('#homeworkUploadedFiles .file-item');
+        this.homeworkResources.files = Array.from(fileItems).map(item => {
+            const fileId = item.dataset.fileId;
+            const fileData = this.fileStorage.get(fileId);
+            return {
+                id: fileId,
+                name: fileData.name,
+                type: fileData.type,
+                size: fileData.size
+            };
+        });
     }
 
     getFileIcon(fileType) {
@@ -274,6 +470,81 @@ class EnglishClassPlanner {
         modal.classList.remove('active');
     }
 
+    closeClassDetailModal() {
+        const modal = document.getElementById('classDetailModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    openClassDetailModal(classId) {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return;
+
+        const modal = document.getElementById('classDetailModal');
+        const title = document.getElementById('classDetailTitle');
+        const body = document.getElementById('classDetailBody');
+
+        const dateInfo = this.formatDate(classData.date);
+        title.textContent = `Clase del ${dateInfo.full}`;
+
+        const activitiesHtml = classData.activities.map(activity => {
+            const filesHtml = activity.files && activity.files.length > 0 
+                ? `<div class="activity-files">${activity.files.map(file => this.createFileDisplay(file)).join('')}</div>`
+                : '';
+            
+            const linksHtml = activity.links && activity.links.length > 0 
+                ? `<div class="activity-files">${activity.links.map(link => `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`).join('')}</div>`
+                : '';
+            
+            return `
+                <div class="activity-display">
+                    <div class="activity-type-badge type-${activity.type}">${activity.type}</div>
+                    <div class="activity-content">
+                        <div class="activity-text">${activity.text}</div>
+                        ${filesHtml}
+                        ${linksHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const homeworkHtml = classData.homework 
+            ? `
+                <div class="homework-section">
+                    <div class="homework-title">
+                        📝 Homework:
+                    </div>
+                    <div class="homework-content">${classData.homework}</div>
+                    ${classData.homeworkFiles && classData.homeworkFiles.length > 0 
+                        ? `<div class="activity-files">${classData.homeworkFiles.map(file => this.createFileDisplay(file)).join('')}</div>`
+                        : ''}
+                    ${classData.homeworkLinks && classData.homeworkLinks.length > 0 
+                        ? `<div class="activity-files">${classData.homeworkLinks.map(link => `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`).join('')}</div>`
+                        : ''}
+                </div>
+            `
+            : '';
+
+        body.innerHTML = `
+            <div class="class-detail-content-full">
+                <div class="activities-list">
+                    ${activitiesHtml}
+                </div>
+                ${homeworkHtml}
+                <div class="class-actions">
+                    <button onclick="planner.editClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-secondary">
+                        ✏️ Editar
+                    </button>
+                    <button onclick="planner.deleteClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-danger">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('active');
+    }
+
     createFileUploadArea() {
         return `
             <button type="button" class="add-resource-trigger" onclick="toggleResourceSection(this)">
@@ -282,7 +553,7 @@ class EnglishClassPlanner {
             <div class="resources-main-section">
                 <div class="resource-type-selector">
                     <button type="button" class="resource-type-btn active" onclick="toggleResourceType(this, 'file')">
-                        📁 Subir archivo
+                        📎 Subir archivo
                     </button>
                     <button type="button" class="resource-type-btn" onclick="toggleResourceType(this, 'link')">
                         🔗 Agregar enlace
@@ -292,7 +563,7 @@ class EnglishClassPlanner {
                 <div class="file-upload-section">
                     <div class="file-upload-area" onclick="triggerFileInput(this)">
                         <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleFileSelect(this)">
-                        <div class="file-upload-text">📁 Subir archivos</div>
+                        <div class="file-upload-text">📎 Subir archivos</div>
                         <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
                     </div>
                     <div class="uploaded-files"></div>
@@ -327,14 +598,16 @@ class EnglishClassPlanner {
             id: Date.now().toString(),
             date: date,
             activities: activities,
-            homework: homework
+            homework: homework,
+            homeworkFiles: this.homeworkResources.files || [],
+            homeworkLinks: this.homeworkResources.links || []
         };
 
         this.classes.unshift(classData);
         this.saveClasses();
         this.renderClasses();
         this.resetForm();
-        this.showStorageInfo(); // Update storage info
+        this.showStorageInfo();
         
         this.showNotification('✅ Clase guardada exitosamente', 'success');
         
@@ -386,64 +659,43 @@ class EnglishClassPlanner {
         
         activityDiv.innerHTML = `
             <div class="activity-header">
-                <div class="activity-type-row">
-                    <select class="activity-type-select">
-                        <option value="activity">🎯 Activity</option>
-                        <option value="game">🎮 Game</option>
-                        <option value="vocabulary">📝 Vocabulary</option>
-                        <option value="explanation">📚 Explanation</option>
-                    </select>
-                    <button type="button" class="remove-activity" onclick="removeActivity(this)" title="Eliminar actividad">×</button>
+                <div class="activity-drag-handle">⋮⋮</div>
+                <button type="button" class="remove-activity" onclick="removeActivity(this)" title="Eliminar actividad">×</button>
+                <div class="activity-main-content">
+                    <div class="activity-type-row">
+                        <select class="activity-type-select">
+                            <option value="activity">🎯 Activity</option>
+                            <option value="game">🎮 Game</option>
+                            <option value="vocabulary">📝 Vocabulary</option>
+                            <option value="explanation">📚 Explanation</option>
+                            <option value="review">📋 Review</option>
+                            <option value="exam">📊 Exam</option>
+                        </select>
+                    </div>
+                    <textarea class="activity-text-input" placeholder="Describe la actividad" required></textarea>
                 </div>
-                <textarea class="activity-text-input" placeholder="Describe la actividad" required></textarea>
             </div>
             ${this.createFileUploadArea()}
         `;
         
         activitiesList.appendChild(activityDiv);
         
-        // Setup drag and drop only when the resource section is activated
+        // Make the activity draggable
+        activityDiv.draggable = true;
+        activityDiv.dataset.activityId = 'activity_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        
+        this.makeActivityDraggable(activityDiv);
+        this.makeActivitiesListSortable();
+        
         const addResourceBtn = activityDiv.querySelector('.add-resource-trigger');
         addResourceBtn.addEventListener('click', () => {
             setTimeout(() => {
                 const uploadArea = activityDiv.querySelector('.file-upload-area');
                 if (uploadArea && !uploadArea.classList.contains('drag-setup')) {
-                    this.setupDragAndDrop(uploadArea);
+                    this.setupDragAndDropForElement(uploadArea);
                     uploadArea.classList.add('drag-setup');
                 }
             }, 100);
-        });
-    }
-
-    setupDragAndDrop(uploadArea) {
-        const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
-        
-        events.forEach(eventName => {
-            uploadArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, () => {
-                uploadArea.classList.add('dragover');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, () => {
-                uploadArea.classList.remove('dragover');
-            });
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            const files = Array.from(e.dataTransfer.files);
-            const activityElement = uploadArea.closest('.activity-item');
-            
-            files.forEach(file => {
-                this.handleFileUpload(file, activityElement);
-            });
         });
     }
 
@@ -451,7 +703,6 @@ class EnglishClassPlanner {
         if (confirm('¿Estás seguro de que deseas eliminar esta clase?')) {
             const classData = this.classes.find(c => c.id === id);
             if (classData) {
-                // Remove associated files from storage
                 classData.activities.forEach(activity => {
                     if (activity.files) {
                         activity.files.forEach(file => {
@@ -459,12 +710,20 @@ class EnglishClassPlanner {
                         });
                     }
                 });
-                this.saveFileStorage(); // Update localStorage
+                
+                if (classData.homeworkFiles) {
+                    classData.homeworkFiles.forEach(file => {
+                        this.fileStorage.delete(file.id);
+                    });
+                }
+                
+                this.saveFileStorage();
             }
             
             this.classes = this.classes.filter(c => c.id !== id);
             this.saveClasses();
             this.renderClasses();
+            this.showStorageInfo();
             this.showNotification('🗑️ Clase eliminada', 'error');
         }
     }
@@ -477,6 +736,36 @@ class EnglishClassPlanner {
 
         document.getElementById('classDate').value = classData.date;
         document.getElementById('homework').value = classData.homework || '';
+        
+        // Reset homework resources
+        this.homeworkResources = {
+            files: [...(classData.homeworkFiles || [])],
+            links: [...(classData.homeworkLinks || [])]
+        };
+        
+        // Clear and repopulate homework resources
+        const homeworkUploadedFiles = document.getElementById('homeworkUploadedFiles');
+        const homeworkLinksList = document.getElementById('homeworkLinkResourcesList');
+        if (homeworkUploadedFiles) homeworkUploadedFiles.innerHTML = '';
+        if (homeworkLinksList) homeworkLinksList.innerHTML = '';
+        
+        // Load homework files
+        if (classData.homeworkFiles && classData.homeworkFiles.length > 0) {
+            classData.homeworkFiles.forEach(fileRef => {
+                const fileData = this.fileStorage.get(fileRef.id);
+                if (fileData) {
+                    const fileItem = this.createDraggableFileItem(fileData, 'homework');
+                    if (homeworkUploadedFiles) homeworkUploadedFiles.appendChild(fileItem);
+                }
+            });
+        }
+        
+        // Load homework links
+        if (classData.homeworkLinks && classData.homeworkLinks.length > 0) {
+            classData.homeworkLinks.forEach(link => {
+                this.addHomeworkLinkResourceToDOM(link.name, link.url);
+            });
+        }
         
         const activitiesList = document.getElementById('activitiesList');
         activitiesList.innerHTML = '';
@@ -493,10 +782,60 @@ class EnglishClassPlanner {
                     this.addFileToActivity(lastActivity, fileData);
                 }
             });
+            
+            activity.links.forEach(link => {
+                this.addLinkResourceToActivity(lastActivity, link.name, link.url);
+            });
         });
 
         this.deleteClassSilent(id);
         this.showNotification('📝 Clase cargada para edición', 'info');
+    }
+
+    addLinkResourceToActivity(activityElement, name, url) {
+        const linksList = activityElement.querySelector('.link-resources-list');
+        const linkId = 'link_' + Date.now();
+        
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-resource-item';
+        linkItem.dataset.linkId = linkId;
+        
+        linkItem.innerHTML = `
+            <div class="link-resource-info">
+                <span class="link-resource-name">${name}</span>
+                <a href="${url}" target="_blank" class="link-resource-url">${this.getDomainFromUrl(url)}</a>
+            </div>
+            <button type="button" class="remove-link-resource" onclick="removeLinkResource(this)" title="Eliminar">×</button>
+        `;
+        
+        linksList.appendChild(linkItem);
+    }
+
+    addHomeworkLinkResourceToDOM(name, url) {
+        const linksList = document.getElementById('homeworkLinkResourcesList');
+        const linkId = 'link_' + Date.now();
+        
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-resource-item';
+        linkItem.dataset.linkId = linkId;
+        
+        linkItem.innerHTML = `
+            <div class="link-resource-info">
+                <span class="link-resource-name">${name}</span>
+                <a href="${url}" target="_blank" class="link-resource-url">${this.getDomainFromUrl(url)}</a>
+            </div>
+            <button type="button" class="remove-link-resource" onclick="removeHomeworkLinkResource(this)" title="Eliminar">×</button>
+        `;
+        
+        linksList.appendChild(linkItem);
+    }
+
+    getDomainFromUrl(url) {
+        try {
+            return new URL(url).hostname;
+        } catch {
+            return url;
+        }
     }
 
     deleteClassSilent(id) {
@@ -511,6 +850,11 @@ class EnglishClassPlanner {
         const activitiesList = document.getElementById('activitiesList');
         activitiesList.innerHTML = '';
         this.addActivityElement();
+        
+        // Reset homework resources
+        this.homeworkResources = { files: [], links: [] };
+        document.getElementById('homeworkUploadedFiles').innerHTML = '';
+        document.getElementById('homeworkLinkResourcesList').innerHTML = '';
         
         this.setTodayAsDefault();
     }
@@ -554,45 +898,12 @@ class EnglishClassPlanner {
         container.innerHTML = classesToRender.map(classData => {
             const dateInfo = this.formatDate(classData.date);
             
-            const activitiesHtml = classData.activities.map(activity => {
-                const filesHtml = activity.files && activity.files.length > 0 
-                    ? `<div class="activity-files">${activity.files.map(file => this.createFileDisplay(file)).join('')}</div>`
-                    : '';
-                
-                const linksHtml = activity.links && activity.links.length > 0 
-                    ? `<div class="activity-files">${activity.links.map(link => `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`).join('')}</div>`
-                    : '';
-                
-                return `
-                    <div class="activity-display">
-                        <div class="activity-type-badge type-${activity.type}">${activity.type}</div>
-                        <div class="activity-content">
-                            <div class="activity-text">${activity.text}</div>
-                            ${filesHtml}
-                            ${linksHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            const homeworkHtml = classData.homework 
-                ? `
-                    <div class="homework-section">
-                        <div class="homework-title">
-                            📝 Homework:
-                        </div>
-                        <div class="homework-content">${classData.homework}</div>
-                    </div>
-                `
-                : '';
-
-            // Create summary for compressed view
             const activitiesCount = classData.activities.length;
             const activityTypes = [...new Set(classData.activities.map(a => a.type))];
             const hasHomework = classData.homework ? true : false;
             const totalResources = classData.activities.reduce((total, activity) => {
                 return total + (activity.files?.length || 0) + (activity.links?.length || 0);
-            }, 0);
+            }, 0) + (classData.homeworkFiles?.length || 0) + (classData.homeworkLinks?.length || 0);
 
             const summaryText = `${activitiesCount} actividad${activitiesCount !== 1 ? 'es' : ''} • Tipos: ${activityTypes.join(', ')}${totalResources > 0 ? ` • ${totalResources} recurso${totalResources !== 1 ? 's' : ''}` : ''}${hasHomework ? ' • Con tarea' : ''}`;
 
@@ -603,23 +914,58 @@ class EnglishClassPlanner {
                             <span class="class-weekday">${dateInfo.weekday}</span>
                             ${dateInfo.full}
                         </div>
-                        <button class="expand-toggle-btn" onclick="toggleClassExpansion('${classData.id}')">
-                            <span class="toggle-icon">👁️</span>
-                            <span class="toggle-text">Ver detalles</span>
-                        </button>
+                        <div class="class-header-actions">
+                            <button class="expand-toggle-btn" onclick="toggleClassExpansion('${classData.id}')">
+                                <span class="toggle-icon">👁️</span>
+                                <span class="toggle-text">Ver detalles</span>
+                            </button>
+                            <button class="view-full-btn" onclick="planner.openClassDetailModal('${classData.id}')" title="Ver en pantalla completa">
+                                📋 Ver completa
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="class-summary">
                         ${summaryText}
                     </div>
                     
-                    <div class="activities-list">
-                        ${activitiesHtml}
+                    <div class="activities-list" style="display: none;">
+                        ${classData.activities.map(activity => {
+                            const filesHtml = activity.files && activity.files.length > 0 
+                                ? `<div class="activity-files">${activity.files.map(file => this.createFileDisplay(file)).join('')}</div>`
+                                : '';
+                            
+                            const linksHtml = activity.links && activity.links.length > 0 
+                                ? `<div class="activity-files">${activity.links.map(link => `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`).join('')}</div>`
+                                : '';
+                            
+                            return `
+                                <div class="activity-display">
+                                    <div class="activity-type-badge type-${activity.type}">${activity.type}</div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">${activity.text}</div>
+                                        ${filesHtml}
+                                        ${linksHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                     
-                    ${homeworkHtml}
+                    ${classData.homework ? `
+                        <div class="homework-section" style="display: none;">
+                            <div class="homework-title">📝 Homework:</div>
+                            <div class="homework-content">${classData.homework}</div>
+                            ${classData.homeworkFiles && classData.homeworkFiles.length > 0 
+                                ? `<div class="activity-files">${classData.homeworkFiles.map(file => this.createFileDisplay(file)).join('')}</div>`
+                                : ''}
+                            ${classData.homeworkLinks && classData.homeworkLinks.length > 0 
+                                ? `<div class="activity-files">${classData.homeworkLinks.map(link => `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`).join('')}</div>`
+                                : ''}
+                        </div>
+                    ` : ''}
                     
-                    <div class="class-actions">
+                    <div class="class-actions" style="display: none;">
                         <button onclick="planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
                             ✏️ Editar
                         </button>
@@ -642,7 +988,7 @@ class EnglishClassPlanner {
             classData.activities.some(activity => 
                 activity.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 activity.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                activity.files.some(file => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                (activity.files && activity.files.some(file => file.name.toLowerCase().includes(searchTerm.toLowerCase())))
             ) ||
             (classData.homework && classData.homework.toLowerCase().includes(searchTerm.toLowerCase()))
         );
@@ -682,6 +1028,131 @@ function switchTab(tabName) {
     document.getElementById(tabName + 'Tab').classList.add('active');
 }
 
+// Homework resource functions
+function toggleHomeworkResources() {
+    const resourceSection = document.getElementById('homeworkResourcesSection');
+    const trigger = document.querySelector('.homework-resources-trigger');
+    
+    if (resourceSection.classList.contains('active')) {
+        resourceSection.classList.remove('active');
+        trigger.innerHTML = '📎 Agregar recursos para la tarea';
+    } else {
+        resourceSection.classList.add('active');
+        trigger.innerHTML = '📎 Ocultar recursos';
+        
+        // Setup drag and drop if not already setup
+        const uploadArea = resourceSection.querySelector('.file-upload-area');
+        if (uploadArea && !uploadArea.classList.contains('drag-setup')) {
+            planner.setupDragAndDropForElement(uploadArea, 'homework');
+            uploadArea.classList.add('drag-setup');
+        }
+    }
+}
+
+function toggleHomeworkResourceType(button, type) {
+    const resourceSection = button.closest('.resources-main-section');
+    const buttons = resourceSection.querySelectorAll('.resource-type-btn');
+    const fileSection = resourceSection.querySelector('.file-upload-section');
+    const linkSection = resourceSection.querySelector('.link-upload-section');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    
+    if (type === 'file') {
+        fileSection.style.display = 'block';
+        linkSection.style.display = 'none';
+    } else {
+        fileSection.style.display = 'none';
+        linkSection.style.display = 'block';
+    }
+}
+
+function triggerHomeworkFileInput() {
+    document.getElementById('homeworkFileInput').click();
+}
+
+function handleHomeworkFileSelect(input) {
+    const files = Array.from(input.files);
+    files.forEach(file => {
+        if (planner) {
+            planner.handleHomeworkFileUpload(file);
+        }
+    });
+    input.value = '';
+}
+
+function removeHomeworkFile(button, fileId) {
+    if (planner) {
+        planner.fileStorage.delete(fileId);
+        planner.saveFileStorage();
+        button.closest('.file-item').remove();
+        
+        // Remove from homework resources
+        planner.homeworkResources.files = planner.homeworkResources.files.filter(f => f.id !== fileId);
+        
+        planner.showNotification('🗑️ Archivo eliminado', 'info');
+    }
+}
+
+function addHomeworkLinkResource() {
+    const nameInput = document.getElementById('homeworkResourceName');
+    const urlInput = document.getElementById('homeworkResourceUrl');
+    
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+    
+    if (!name || !url) {
+        if (planner) {
+            planner.showNotification('⚠️ Completa el nombre y URL del recurso', 'warning');
+        }
+        return;
+    }
+    
+    try {
+        new URL(url);
+    } catch {
+        if (planner) {
+            planner.showNotification('⚠️ URL inválida', 'warning');
+        }
+        return;
+    }
+    
+    // Add to homework resources
+    if (!planner.homeworkResources.links) {
+        planner.homeworkResources.links = [];
+    }
+    planner.homeworkResources.links.push({ name, url });
+    
+    planner.addHomeworkLinkResourceToDOM(name, url);
+    
+    nameInput.value = '';
+    urlInput.value = '';
+    
+    if (planner) {
+        planner.showNotification('✅ Enlace agregado exitosamente', 'success');
+    }
+}
+
+function removeHomeworkLinkResource(button) {
+    const linkItem = button.closest('.link-resource-item');
+    const name = linkItem.querySelector('.link-resource-name').textContent;
+    const url = linkItem.querySelector('.link-resource-url').href;
+    
+    // Remove from homework resources
+    if (planner.homeworkResources.links) {
+        planner.homeworkResources.links = planner.homeworkResources.links.filter(
+            link => link.name !== name || link.url !== url
+        );
+    }
+    
+    linkItem.remove();
+    
+    if (planner) {
+        planner.showNotification('🗑️ Enlace eliminado', 'info');
+    }
+}
+
+// Activity resource functions
 function toggleResourceSection(button) {
     const activityItem = button.closest('.activity-item');
     const resourceSection = activityItem.querySelector('.resources-main-section');
@@ -734,7 +1205,7 @@ function handleFileSelect(input) {
 function removeFile(button, fileId) {
     if (planner) {
         planner.fileStorage.delete(fileId);
-        planner.saveFileStorage(); // Save to localStorage
+        planner.saveFileStorage();
         button.closest('.file-item').remove();
         planner.showNotification('🗑️ Archivo eliminado', 'info');
     }
@@ -743,6 +1214,12 @@ function removeFile(button, fileId) {
 function previewFile(fileId) {
     if (planner) {
         planner.previewFile(fileId);
+    }
+}
+
+function closeClassDetailModal() {
+    if (planner) {
+        planner.closeClassDetailModal();
     }
 }
 
@@ -768,7 +1245,7 @@ function removeActivity(button) {
                 const fileId = fileItem.dataset.fileId;
                 planner.fileStorage.delete(fileId);
             });
-            planner.saveFileStorage(); // Save to localStorage
+            planner.saveFileStorage();
         }
         
         button.closest('.activity-item').remove();
@@ -850,7 +1327,7 @@ function handleImport(input) {
     const file = input.files[0];
     if (file && planner) {
         planner.importData(file);
-        input.value = ''; // Clear the input
+        input.value = '';
     }
 }
 
@@ -865,7 +1342,6 @@ function toggleAllClasses() {
     const firstClassIsCompressed = allClassItems[0].classList.contains('compressed');
     
     if (firstClassIsCompressed) {
-        // Expand all
         allClassItems.forEach((classItem, index) => {
             setTimeout(() => {
                 const classId = classItem.dataset.classId;
@@ -875,11 +1351,10 @@ function toggleAllClasses() {
             }, index * 100);
         });
         
-        expandAllIcon.textContent = '📑';
+        expandAllIcon.textContent = '📕';
         expandAllText.textContent = 'Comprimir todas';
         
     } else {
-        // Compress all
         allClassItems.forEach((classItem, index) => {
             setTimeout(() => {
                 const classId = classItem.dataset.classId;
@@ -901,14 +1376,13 @@ function toggleClassExpansion(classId) {
     const toggleText = toggleBtn.querySelector('.toggle-text');
     
     if (classItem.classList.contains('compressed')) {
-        // Expand
         classItem.classList.remove('compressed');
         toggleIcon.textContent = '🔼';
         toggleText.textContent = 'Comprimir';
         
-        // Animate expansion
         const hiddenElements = classItem.querySelectorAll('.activities-list, .homework-section, .class-actions');
         hiddenElements.forEach(el => {
+            el.style.display = 'block';
             el.style.opacity = '0';
             el.style.transform = 'translateY(-10px)';
         });
@@ -924,10 +1398,14 @@ function toggleClassExpansion(classId) {
         }, 50);
         
     } else {
-        // Compress
         classItem.classList.add('compressed');
         toggleIcon.textContent = '👁️';
         toggleText.textContent = 'Ver detalles';
+        
+        const hiddenElements = classItem.querySelectorAll('.activities-list, .homework-section, .class-actions');
+        hiddenElements.forEach(el => {
+            el.style.display = 'none';
+        });
     }
 }
 
