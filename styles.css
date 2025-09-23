@@ -969,6 +969,15 @@ textarea {
     border-left: 3px solid #f59e0b;
 }
 
+.homework-section ol, 
+.homework-section ul {
+    padding-left: 2rem;
+}
+
+.homework-section li {
+    margin-bottom: 0.5rem;
+}
+
 .homework-title {
     font-weight: 600;
     margin-bottom: 0.5rem;
