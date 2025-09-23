@@ -423,6 +423,7 @@ textarea {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin-top: 1rem;
     margin-bottom: 1rem;
 }
 
@@ -1424,4 +1425,106 @@ html {
     border: 2px dashed #3b82f6;
     border-radius: 6px;
     padding: 0.5rem;
+}
+
+/* Rich Text Editor Styles */
+.rich-text-container {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.rich-text-container:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.rich-text-container .ql-toolbar {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 12px 12px 0 0;
+}
+
+.rich-text-container .ql-container {
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    min-height: 80px;
+}
+
+.rich-text-container .ql-editor {
+    padding: 1rem 1.25rem;
+    line-height: 1.5;
+    min-height: 80px;
+}
+
+.rich-text-container .ql-editor.ql-blank::before {
+    color: #8e8e93;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.rich-text-container .ql-toolbar .ql-formats {
+    margin-right: 0.75rem;
+}
+
+.rich-text-container .ql-toolbar button {
+    padding: 0.25rem;
+    margin: 0 0.125rem;
+}
+
+.rich-text-container .ql-toolbar button:hover {
+    color: #3b82f6;
+}
+
+.rich-text-container .ql-toolbar .ql-active {
+    color: #3b82f6;
+}
+
+/* Homework rich text editor */
+.homework-rich-text-container {
+    margin-top: 0.5rem;
+}
+
+.homework-rich-text-container .ql-container {
+    min-height: 100px;
+}
+
+.homework-rich-text-container .ql-editor {
+    min-height: 100px;
+}
+
+/* Custom heading sizes for rich text editor */
+.rich-text-container .ql-editor h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+.rich-text-container .ql-editor h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 0.875rem;
+    margin-bottom: 0.625rem;
+    line-height: 1.3;
+    color: #1e293b;
+}
+
+.rich-text-container .ql-editor h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    color: #1e293b;
 }

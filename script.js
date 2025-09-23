@@ -3,11 +3,17 @@ class EnglishClassPlanner {
         this.classes = this.loadClasses();
         this.fileStorage = this.loadFileStorage();
         this.homeworkResources = { files: [], links: [] };
+        this.homeworkQuillEditor = null;
         this.initializeEventListeners();
         this.renderClasses();
         this.setTodayAsDefault();
         this.addInitialActivity();
         this.showStorageInfo();
+        
+        // Initialize rich text editors after DOM is ready
+        setTimeout(() => {
+            this.initializeHomeworkEditor();
+        }, 500);
     }
 
     showStorageInfo() {
@@ -500,7 +506,7 @@ class EnglishClassPlanner {
                 <div class="activity-display">
                     <div class="activity-type-badge type-${activity.type}">${activity.type}</div>
                     <div class="activity-content">
-                        <div class="activity-text">${activity.text}</div>
+                        <div class="activity-text">${activity.textHtml || activity.text}</div>
                         ${filesHtml}
                         ${linksHtml}
                     </div>
@@ -514,7 +520,7 @@ class EnglishClassPlanner {
                     <div class="homework-title">
                         📝 Homework:
                     </div>
-                    <div class="homework-content">${classData.homework}</div>
+                    <div class="homework-content">${classData.homeworkHtml || classData.homework}</div>
                     ${classData.homeworkFiles && classData.homeworkFiles.length > 0 
                         ? `<div class="activity-files">${classData.homeworkFiles.map(file => this.createFileDisplay(file)).join('')}</div>`
                         : ''}
@@ -585,7 +591,8 @@ class EnglishClassPlanner {
 
     addClass() {
         const date = document.getElementById('classDate').value;
-        const homework = document.getElementById('homework').value;
+        const homeworkContent = this.homeworkQuillEditor ? this.getRichTextContent(this.homeworkQuillEditor) : { html: '', text: '' };
+        const homework = homeworkContent.text;
         
         const activities = this.getActivitiesFromForm();
 
@@ -599,6 +606,7 @@ class EnglishClassPlanner {
             date: date,
             activities: activities,
             homework: homework,
+            homeworkHtml: homeworkContent.html,
             homeworkFiles: this.homeworkResources.files || [],
             homeworkLinks: this.homeworkResources.links || []
         };
@@ -620,7 +628,8 @@ class EnglishClassPlanner {
         
         activityElements.forEach(element => {
             const type = element.querySelector('.activity-type-select').value;
-            const text = element.querySelector('.activity-text-input').value.trim();
+            const textContent = element.quillEditor ? this.getRichTextContent(element.quillEditor) : { html: '', text: '' };
+            const text = textContent.text;
             
             if (text) {
                 const files = [];
@@ -646,6 +655,7 @@ class EnglishClassPlanner {
                 });
                 
                 activities.push({ type, text, files, links });
+                activities[activities.length - 1].textHtml = textContent.html;
             }
         });
         
@@ -672,7 +682,7 @@ class EnglishClassPlanner {
                             <option value="exam">📊 Exam</option>
                         </select>
                     </div>
-                    <textarea class="activity-text-input" placeholder="Describe la actividad" required></textarea>
+                    <div class="activity-text-input-container"></div>
                 </div>
             </div>
             ${this.createFileUploadArea()}
@@ -697,6 +707,13 @@ class EnglishClassPlanner {
                 }
             }, 100);
         });
+
+        // Initialize rich text editor for this activity
+        setTimeout(() => {
+            const textContainer = activityDiv.querySelector('.activity-text-input-container');
+            const editor = this.initializeRichTextEditor(textContainer, '');
+            activityDiv.quillEditor = editor;
+        }, 100);
     }
 
     deleteClass(id) {
@@ -735,7 +752,17 @@ class EnglishClassPlanner {
         switchTab('create');
 
         document.getElementById('classDate').value = classData.date;
-        document.getElementById('homework').value = classData.homework || '';
+        
+        // Set homework rich text content
+        if (this.homeworkQuillEditor && classData.homeworkHtml) {
+            setTimeout(() => {
+                this.setRichTextContent(this.homeworkQuillEditor, classData.homeworkHtml);
+            }, 300);
+        } else if (this.homeworkQuillEditor && classData.homework) {
+            setTimeout(() => {
+                this.homeworkQuillEditor.setText(classData.homework);
+            }, 300);
+        }
         
         // Reset homework resources
         this.homeworkResources = {
@@ -774,7 +801,6 @@ class EnglishClassPlanner {
             this.addActivityElement();
             const lastActivity = activitiesList.lastElementChild;
             lastActivity.querySelector('.activity-type-select').value = activity.type;
-            lastActivity.querySelector('.activity-text-input').value = activity.text;
             
             activity.files.forEach(fileRef => {
                 const fileData = this.fileStorage.get(fileRef.id);
@@ -787,6 +813,18 @@ class EnglishClassPlanner {
                 this.addLinkResourceToActivity(lastActivity, link.name, link.url);
             });
         });
+
+        // Set activity rich text content
+        setTimeout(() => {
+            const activityElements = activitiesList.querySelectorAll('.activity-item');
+            classData.activities.forEach((activity, index) => {
+                if (activityElements[index] && activityElements[index].quillEditor && activity.textHtml) {
+                    this.setRichTextContent(activityElements[index].quillEditor, activity.textHtml);
+                } else if (activityElements[index] && activityElements[index].quillEditor && activity.text) {
+                    activityElements[index].quillEditor.setText(activity.text);
+                }
+            });
+        }, 400);
 
         this.deleteClassSilent(id);
         this.showNotification('📝 Clase cargada para edición', 'info');
@@ -857,6 +895,11 @@ class EnglishClassPlanner {
         document.getElementById('homeworkLinkResourcesList').innerHTML = '';
         
         this.setTodayAsDefault();
+        
+        // Initialize homework rich text editor
+        setTimeout(() => {
+            this.initializeHomeworkEditor();
+        }, 200);
     }
 
     createFileDisplay(file) {
@@ -943,7 +986,7 @@ class EnglishClassPlanner {
                                 <div class="activity-display">
                                     <div class="activity-type-badge type-${activity.type}">${activity.type}</div>
                                     <div class="activity-content">
-                                        <div class="activity-text">${activity.text}</div>
+                                        <div class="activity-text">${activity.textHtml || activity.text}</div>
                                         ${filesHtml}
                                         ${linksHtml}
                                     </div>
@@ -955,7 +998,7 @@ class EnglishClassPlanner {
                     ${classData.homework ? `
                         <div class="homework-section" style="display: none;">
                             <div class="homework-title">📝 Homework:</div>
-                            <div class="homework-content">${classData.homework}</div>
+                            <div class="homework-content">${classData.homeworkHtml || classData.homework}</div>
                             ${classData.homeworkFiles && classData.homeworkFiles.length > 0 
                                 ? `<div class="activity-files">${classData.homeworkFiles.map(file => this.createFileDisplay(file)).join('')}</div>`
                                 : ''}
@@ -1011,6 +1054,63 @@ class EnglishClassPlanner {
                 }
             }, 400);
         }, 3500);
+    }
+
+    // Rich text editor methods
+    initializeRichTextEditor(container, placeholder = 'Escribe aquí...', isHomework = false) {
+        const editorId = 'editor-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+        
+        const editorHTML = `
+            <div class="rich-text-container ${isHomework ? 'homework-rich-text-container' : ''}">
+                <div id="${editorId}" data-placeholder="${placeholder}"></div>
+            </div>
+        `;
+        
+        container.innerHTML = editorHTML;
+        
+        const quill = new Quill(`#${editorId}`, {
+            theme: 'snow',
+            placeholder: placeholder,
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                ]
+            }
+        });
+        
+        return quill;
+    }
+
+    getRichTextContent(quill) {
+        const delta = quill.getContents();
+        const html = quill.root.innerHTML;
+        return {
+            html: html === '<p><br></p>' ? '' : html,
+            text: quill.getText().trim(),
+            delta: delta
+        };
+    }
+
+    setRichTextContent(quill, content) {
+        if (typeof content === 'string') {
+            quill.root.innerHTML = content;
+        } else if (content && content.delta) {
+            quill.setContents(content.delta);
+        } else if (content && content.html) {
+            quill.root.innerHTML = content.html;
+        }
+    }
+
+    initializeHomeworkEditor() {
+        const homeworkTextarea = document.getElementById('homework');
+        if (homeworkTextarea) {
+            const parent = homeworkTextarea.parentNode;
+            const newContainer = document.createElement('div');
+            newContainer.id = 'homework-editor-container';
+            parent.replaceChild(newContainer, homeworkTextarea);
+            this.homeworkQuillEditor = this.initializeRichTextEditor(newContainer, 'Ej: Make a question with each verb', true);
+        }
     }
 }
 
