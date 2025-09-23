@@ -9,7 +9,8 @@ class EnglishClassPlanner {
         this.setTodayAsDefault();
         this.addInitialActivity();
         this.showStorageInfo();
-        
+        this.handleSharedClass();
+
         // Initialize rich text editors after DOM is ready
         setTimeout(() => {
             this.initializeHomeworkEditor();
@@ -541,6 +542,9 @@ class EnglishClassPlanner {
                     <button onclick="planner.editClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-secondary">
                         ✏️ Editar
                     </button>
+                    <button onclick="planner.shareClass('${classData.id}');" class="btn" style="background: #22c55e; color: white;">
+                        🔗 Compartir
+                    </button>
                     <button onclick="planner.deleteClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-danger">
                         🗑️ Eliminar
                     </button>
@@ -1012,6 +1016,9 @@ class EnglishClassPlanner {
                         <button onclick="planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
                             ✏️ Editar
                         </button>
+                        <button onclick="planner.shareClass('${classData.id}')" class="btn btn-small" style="background: #22c55e;">
+                            🔗 Compartir
+                        </button>
                         <button onclick="planner.deleteClass('${classData.id}')" class="btn btn-danger btn-small">
                             🗑️ Eliminar
                         </button>
@@ -1111,6 +1118,129 @@ class EnglishClassPlanner {
             parent.replaceChild(newContainer, homeworkTextarea);
             this.homeworkQuillEditor = this.initializeRichTextEditor(newContainer, 'Ej: Make a question with each verb', true);
         }
+    }
+
+    handleSharedClass() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedData = urlParams.get('share');
+        
+        if (sharedData) {
+            try {
+                const classData = JSON.parse(atob(sharedData));
+                
+                if (confirm('¿Deseas importar esta clase compartida?')) {
+                    // Import files
+                    if (classData.files) {
+                        Object.entries(classData.files).forEach(([fileId, fileData]) => {
+                            this.fileStorage.set(fileId, fileData);
+                        });
+                        this.saveFileStorage();
+                    }
+                    
+                    // Remove share-specific data
+                    delete classData.files;
+                    delete classData.shareDate;
+                    
+                    // Add to classes
+                    classData.id = Date.now().toString();
+                    this.classes.unshift(classData);
+                    this.saveClasses();
+                    this.renderClasses();
+                    this.showStorageInfo();
+                    
+                    this.showNotification('✅ Clase compartida importada exitosamente', 'success');
+                    
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } catch (error) {
+                this.showNotification('❌ Error al importar clase compartida', 'error');
+                console.error('Share import error:', error);
+            }
+        }
+    }
+
+    // Share functionality
+    shareClass(classId) {
+        this.currentShareClassId = classId;
+        const modal = document.getElementById('shareModal');
+        modal.classList.add('active');
+    }
+
+    generateShareableContent(classId) {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return null;
+        
+        const dateInfo = this.formatDate(classData.date);
+        
+        // Create shareable object with files as base64
+        const shareableClass = {
+            ...classData,
+            shareDate: new Date().toISOString(),
+            files: {}
+        };
+        
+        // Include file data for sharing
+        classData.activities.forEach(activity => {
+            if (activity.files) {
+                activity.files.forEach(file => {
+                    const fileData = this.fileStorage.get(file.id);
+                    if (fileData) {
+                        shareableClass.files[file.id] = fileData;
+                    }
+                });
+            }
+        });
+        
+        if (classData.homeworkFiles) {
+            classData.homeworkFiles.forEach(file => {
+                const fileData = this.fileStorage.get(file.id);
+                if (fileData) {
+                    shareableClass.files[file.id] = fileData;
+                }
+            });
+        }
+        
+        return shareableClass;
+    }
+
+    generateShareableText(classId) {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return '';
+        
+        const dateInfo = this.formatDate(classData.date);
+        let text = `📚 CLASE DE INGLÉS - ${dateInfo.full}\n`;
+        text += `${'='.repeat(50)}\n\n`;
+        
+        text += `📋 ACTIVIDADES:\n`;
+        classData.activities.forEach((activity, index) => {
+            text += `${index + 1}. [${activity.type.toUpperCase()}] ${activity.text}\n`;
+            if (activity.files && activity.files.length > 0) {
+                text += `   📎 Archivos: ${activity.files.map(f => f.name).join(', ')}\n`;
+            }
+            if (activity.links && activity.links.length > 0) {
+                text += `   🔗 Enlaces: ${activity.links.map(l => `${l.name} (${l.url})`).join(', ')}\n`;
+            }
+            text += '\n';
+        });
+        
+        if (classData.homework) {
+            text += `📝 TAREA:\n${classData.homework}\n`;
+            if (classData.homeworkFiles && classData.homeworkFiles.length > 0) {
+                text += `📎 Archivos de tarea: ${classData.homeworkFiles.map(f => f.name).join(', ')}\n`;
+            }
+            if (classData.homeworkLinks && classData.homeworkLinks.length > 0) {
+                text += `🔗 Enlaces de tarea: ${classData.homeworkLinks.map(l => `${l.name} (${l.url})`).join(', ')}\n`;
+            }
+        }
+        
+        return text;
+    }
+
+    closeShareModal() {
+        const modal = document.getElementById('shareModal');
+        modal.classList.remove('active');
+        document.getElementById('shareSuccess').classList.remove('active');
     }
 }
 
@@ -1506,6 +1636,67 @@ function toggleClassExpansion(classId) {
         hiddenElements.forEach(el => {
             el.style.display = 'none';
         });
+    }
+}
+
+// Share functions
+function shareAsUrl() {
+    if (!planner.currentShareClassId) return;
+    
+    const shareableContent = planner.generateShareableContent(planner.currentShareClassId);
+    const compressed = btoa(JSON.stringify(shareableContent));
+    const url = `${window.location.origin}${window.location.pathname}?share=${compressed}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+        document.getElementById('shareSuccess').classList.add('active');
+        setTimeout(() => {
+            planner.closeShareModal();
+        }, 2000);
+    }).catch(() => {
+        planner.showNotification('⚠️ No se pudo copiar al portapapeles', 'warning');
+    });
+}
+
+function shareAsJson() {
+    if (!planner.currentShareClassId) return;
+    
+    const shareableContent = planner.generateShareableContent(planner.currentShareClassId);
+    const blob = new Blob([JSON.stringify(shareableContent, null, 2)], {
+        type: 'application/json'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clase-ingles-${shareableContent.date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    planner.showNotification('📄 Archivo descargado exitosamente', 'success');
+    planner.closeShareModal();
+}
+
+function shareAsText() {
+    if (!planner.currentShareClassId) return;
+    
+    const text = planner.generateShareableText(planner.currentShareClassId);
+    
+    navigator.clipboard.writeText(text).then(() => {
+        document.getElementById('shareSuccess').classList.add('active');
+        setTimeout(() => {
+            planner.closeShareModal();
+            switchTab('view');
+        }, 2000);
+    }).catch(() => {
+        planner.showNotification('⚠️ No se pudo copiar al portapapeles', 'warning');
+    });
+}
+
+function closeShareModal() {
+    if (planner) {
+        planner.closeShareModal();
     }
 }
 

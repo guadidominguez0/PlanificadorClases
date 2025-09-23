@@ -189,6 +189,50 @@
         </div>
     </div>
 
+    <!-- Share Class Modal -->
+    <div id="shareModal" class="share-modal">
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <h3 class="share-modal-title">Compartir Clase</h3>
+            </div>
+            <div class="share-modal-body">
+                <div id="shareSuccess" class="share-success">
+                    ✅ Enlace copiado al portapapeles
+                </div>
+                
+                <div class="share-options">
+                    <div class="share-option" onclick="shareAsUrl()">
+                        <div class="share-option-icon">🔗</div>
+                        <div class="share-option-content">
+                            <div class="share-option-title">Copiar enlace</div>
+                            <div class="share-option-description">Generar un enlace para compartir esta clase</div>
+                        </div>
+                    </div>
+                    
+                    <div class="share-option" onclick="shareAsJson()">
+                        <div class="share-option-icon">📄</div>
+                        <div class="share-option-content">
+                            <div class="share-option-title">Descargar archivo</div>
+                            <div class="share-option-description">Guardar la clase como archivo JSON</div>
+                        </div>
+                    </div>
+                    
+                    <div class="share-option" onclick="shareAsText()">
+                        <div class="share-option-icon">📝</div>
+                        <div class="share-option-content">
+                            <div class="share-option-title">Copiar como texto</div>
+                            <div class="share-option-description">Copiar el contenido de la clase como texto plano</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="share-actions">
+                    <button class="btn btn-secondary" onclick="closeShareModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 </body>
