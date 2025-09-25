@@ -10,23 +10,26 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>English Class Planner</h1>
-            <p class="subtitle">Plan your English classes with style and precision</p>
+        <header class="header-with-nav">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1>English Class Planner</h1>
+                </div>
+                
+                <!-- Tab Navigation -->
+                <nav class="tab-navigation-header">
+                    <button class="tab-button active" onclick="switchTab('create')" data-tab="create">
+                        ➕ Crear Clase
+                    </button>
+                    <button class="tab-button" onclick="switchTab('view')" data-tab="view">
+                        📚 Ver Clases
+                    </button>
+                    <button class="tab-button" onclick="switchTab('settings')" data-tab="settings">
+                        ⚙️ Configuración
+                    </button>
+                </nav>
+            </div>
         </header>
-
-        <!-- Tab Navigation -->
-        <div class="tab-navigation">
-            <button class="tab-button active" onclick="switchTab('create')" data-tab="create">
-                ➕ Crear Clase
-            </button>
-            <button class="tab-button" onclick="switchTab('view')" data-tab="view">
-                📚 Ver Clases
-            </button>
-            <button class="tab-button" onclick="switchTab('settings')" data-tab="settings">
-                ⚙️ Configuración
-            </button>
-        </div>
 
         <!-- Create Class Tab -->
         <div id="createTab" class="tab-content active">
