@@ -17,6 +17,33 @@ class EnglishClassPlanner {
         }, 500);
     }
 
+    formatClassDate(dateString) {
+        const date = new Date(dateString + 'T00:00:00');
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        
+        // Función para agregar el sufijo ordinal
+        const getOrdinalSuffix = (num) => {
+            const j = num % 10;
+            const k = num % 100;
+            if (j === 1 && k !== 11) {
+                return num + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return num + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return num + "rd";
+            }
+            return num + "th";
+        };
+        
+        const dayWithSuffix = getOrdinalSuffix(day);
+        return `Today is ${month} ${dayWithSuffix}`;
+    }
+
     showStorageInfo() {
         const classesSize = JSON.stringify(this.classes).length;
         const filesSize = JSON.stringify(Object.fromEntries(this.fileStorage)).length;
@@ -492,6 +519,7 @@ class EnglishClassPlanner {
         const body = document.getElementById('classDetailBody');
 
         const dateInfo = this.formatDate(classData.date);
+        const englishDate = this.formatClassDate(classData.date);
         title.textContent = `Clase del ${dateInfo.full}`;
 
         const activitiesHtml = classData.activities.map(activity => {
@@ -534,6 +562,7 @@ class EnglishClassPlanner {
 
         body.innerHTML = `
             <div class="class-detail-content-full">
+                <div class="class-date-english">${englishDate}</div>
                 <div class="activities-list">
                     ${activitiesHtml}
                 </div>

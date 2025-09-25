@@ -1173,6 +1173,17 @@ textarea {
     }
 }
 
+.class-date-english {
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
 /* Settings Styles */
 .settings-section {
     margin-bottom: 2rem;
