@@ -568,13 +568,13 @@ class EnglishClassPlanner {
                 </div>
                 ${homeworkHtml}
                 <div class="class-actions">
-                    <button onclick="planner.editClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-secondary">
+                    <button onclick="event.stopPropagation(); planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
                         ✏️ Editar
                     </button>
-                    <button onclick="planner.shareClass('${classData.id}');" class="btn" style="background: #22c55e; color: white;">
+                    <button onclick="event.stopPropagation(); planner.shareClass('${classData.id}')" class="btn btn-small" style="background: #22c55e;">
                         🔗 Compartir
                     </button>
-                    <button onclick="planner.deleteClass('${classData.id}'); planner.closeClassDetailModal();" class="btn btn-danger">
+                    <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id}')" class="btn btn-danger btn-small">
                         🗑️ Eliminar
                     </button>
                 </div>
@@ -985,18 +985,14 @@ class EnglishClassPlanner {
             const summaryText = `${activitiesCount} actividad${activitiesCount !== 1 ? 'es' : ''} • Tipos: ${activityTypes.join(', ')}${totalResources > 0 ? ` • ${totalResources} recurso${totalResources !== 1 ? 's' : ''}` : ''}${hasHomework ? ' • Con tarea' : ''}`;
 
             return `
-                <div class="class-item compressed fade-in" data-class-id="${classData.id}">
+                <div class="class-item compressed fade-in" data-class-id="${classData.id}" onclick="toggleClassExpansion('${classData.id}', event)">
                     <div class="class-header">
                         <div class="class-date-title">
                             <span class="class-weekday">${dateInfo.weekday}</span>
                             ${dateInfo.dayNumber}
                         </div>
                         <div class="class-header-actions">
-                            <button class="expand-toggle-btn" onclick="toggleClassExpansion('${classData.id}')">
-                                <span class="toggle-icon">👁️</span>
-                                <span class="toggle-text">Ver detalles</span>
-                            </button>
-                            <button class="view-full-btn" onclick="planner.openClassDetailModal('${classData.id}')" title="Ver en pantalla completa">
+                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${classData.id}')" class="view-full-btn" title="Ver en pantalla completa">
                                 📋 Ver completa
                             </button>
                         </div>
@@ -1043,13 +1039,13 @@ class EnglishClassPlanner {
                     ` : ''}
                     
                     <div class="class-actions" style="display: none;">
-                        <button onclick="planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
+                        <button onclick="event.stopPropagation(); planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
                             ✏️ Editar
                         </button>
-                        <button onclick="planner.shareClass('${classData.id}')" class="btn btn-small" style="background: #22c55e;">
+                        <button onclick="event.stopPropagation(); planner.shareClass('${classData.id}')" class="btn btn-small" style="background: #22c55e;">
                             🔗 Compartir
                         </button>
-                        <button onclick="planner.deleteClass('${classData.id}')" class="btn btn-danger btn-small">
+                        <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id}')" class="btn btn-danger btn-small">
                             🗑️ Eliminar
                         </button>
                     </div>
@@ -1950,16 +1946,22 @@ function toggleAllClasses() {
     }
 }
 
-function toggleClassExpansion(classId) {
+function toggleClassExpansion(classId, event) {
+    // Si viene de un botón, no hacer nada
+    if (event && event.target.closest('button')) {
+        event.stopPropagation();
+        return;
+    }
+    
     const classItem = document.querySelector(`[data-class-id="${classId}"]`);
     const toggleBtn = classItem.querySelector('.expand-toggle-btn');
-    const toggleIcon = toggleBtn.querySelector('.toggle-icon');
-    const toggleText = toggleBtn.querySelector('.toggle-text');
+    
+    // Como ya no hay botón visible, crear referencias simuladas
+    let toggleIcon = { textContent: '' };
+    let toggleText = { textContent: '' };
     
     if (classItem.classList.contains('compressed')) {
         classItem.classList.remove('compressed');
-        toggleIcon.textContent = '🔼';
-        toggleText.textContent = 'Comprimir';
         
         const hiddenElements = classItem.querySelectorAll('.activities-list, .homework-section, .class-actions');
         hiddenElements.forEach(el => {
@@ -1980,8 +1982,6 @@ function toggleClassExpansion(classId) {
         
     } else {
         classItem.classList.add('compressed');
-        toggleIcon.textContent = '👁️';
-        toggleText.textContent = 'Ver detalles';
         
         const hiddenElements = classItem.querySelectorAll('.activities-list, .homework-section, .class-actions');
         hiddenElements.forEach(el => {
