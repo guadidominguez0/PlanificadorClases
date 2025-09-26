@@ -955,7 +955,8 @@ class EnglishClassPlanner {
         
         return {
             full: `${dayName} ${day}/${month}`,
-            weekday: dayName.substring(0, 3).toUpperCase()
+            weekday: dayName.substring(0, 3).toUpperCase(),
+            dayNumber: `${day}/${month}`
         };
     }
 
@@ -988,7 +989,7 @@ class EnglishClassPlanner {
                     <div class="class-header">
                         <div class="class-date-title">
                             <span class="class-weekday">${dateInfo.weekday}</span>
-                            ${dateInfo.full}
+                            ${dateInfo.dayNumber}
                         </div>
                         <div class="class-header-actions">
                             <button class="expand-toggle-btn" onclick="toggleClassExpansion('${classData.id}')">
