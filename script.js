@@ -1238,7 +1238,7 @@ class EnglishClassPlanner {
         if (!classData) return '';
         
         const dateInfo = this.formatDate(classData.date);
-        let text = `📚 CLASE DE INGLÉS - ${dateInfo.full}\n`;
+        let text = `📚 ${dateInfo.full}\n`;
         text += `${'='.repeat(50)}\n\n`;
         
         text += `📋 ACTIVIDADES:\n`;
@@ -1259,7 +1259,7 @@ class EnglishClassPlanner {
                 text += `📎 Archivos de tarea: ${classData.homeworkFiles.map(f => f.name).join(', ')}\n`;
             }
             if (classData.homeworkLinks && classData.homeworkLinks.length > 0) {
-                text += `🔗 Enlaces de tarea: ${classData.homeworkLinks.map(l => `${l.name} (${l.url})`).join(', ')}\n`;
+                text += `🔗 Enlaces de tarea: ${classData.homeworkLinks.map(l => `${l.name} (${l.url}) `).join(', ')}\n`;
             }
         }
         
@@ -1270,6 +1270,327 @@ class EnglishClassPlanner {
         const modal = document.getElementById('shareModal');
         modal.classList.remove('active');
         document.getElementById('shareSuccess').classList.remove('active');
+    }
+
+    generateClassWithFiles(classId) {
+        const classData = this.classes.find(c => c.id === classId);
+        if (!classData) return;
+        
+        let htmlContent = `
+        <html>
+        <head>
+            <title>English Class - ${this.formatDate(classData.date).full}</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                    line-height: 1.47;
+                    color: #1d1d1f;
+                    background: #e8f4f8;
+                    padding: 24px;
+                    -webkit-font-smoothing: antialiased;
+                }
+                
+                .container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                    overflow: hidden;
+                }
+                
+                .header {
+                    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                    padding: 40px 32px;
+                    text-align: center;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                
+                .header h1 {
+                    font-size: 34px;
+                    font-weight: 700;
+                    letter-spacing: -0.41px;
+                    color: #1e293b;
+                    margin-bottom: 8px;
+                }
+                
+                .date {
+                    font-size: 17px;
+                    font-weight: 400;
+                    color: #64748b;
+                    letter-spacing: -0.41px;
+                }
+                
+                .content {
+                    padding: 32px;
+                    background: #ffffff;
+                }
+                
+                .section-title {
+                    font-size: 28px;
+                    font-weight: 700;
+                    letter-spacing: -0.36px;
+                    color: #1e293b;
+                    margin-bottom: 24px;
+                }
+                
+                .activity { 
+                    background: #f8fafc;
+                    margin-bottom: 16px;
+                    padding: 20px;
+                    border-radius: 12px;
+                    border: 1px solid #e2e8f0;
+                }
+                
+                .activity:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .activity-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                }
+                
+                .activity-number {
+                    font-size: 17px;
+                    font-weight: 600;
+                    color: #1e293b;
+                }
+                
+                .activity-type {
+                    background: #3b82f6;
+                    color: #ffffff;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08px;
+                }
+                
+                .activity p {
+                    font-size: 17px;
+                    line-height: 1.47;
+                    color: #374151;
+                    margin-bottom: 16px;
+                }
+                
+                .activity p:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .files-section {
+                    margin-top: 16px;
+                    padding-top: 16px;
+                    border-top: 1px solid #e2e8f0;
+                }
+                
+                .files-title {
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #64748b;
+                    margin-bottom: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08px;
+                }
+                
+                .file-link { 
+                    display: inline-block;
+                    margin: 0 8px 8px 0;
+                    padding: 8px 16px;
+                    background: #ffffff;
+                    color: #3b82f6;
+                    text-decoration: none;
+                    border-radius: 20px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                    border: 1px solid #e2e8f0;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                }
+                
+                .file-link:hover {
+                    background: #3b82f6;
+                    color: #ffffff;
+                    transform: scale(1.02);
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+                }
+                
+                .file-link:active {
+                    transform: scale(0.98);
+                }
+                
+                .homework { 
+                    background: #ffffff;
+                    padding: 24px;
+                    border-radius: 12px;
+                    margin-top: 32px;
+                    border: 1px solid #f59e0b;
+                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+                }
+                
+                .homework h2 {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: #d97706;
+                    margin-bottom: 16px;
+                    letter-spacing: -0.26px;
+                }
+                
+                .homework p {
+                    font-size: 17px;
+                    line-height: 1.47;
+                    color: #374151;
+                    margin-bottom: 16px;
+                }
+                
+                .homework p:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .homework .files-title {
+                    color: #d97706;
+                }
+                
+                .homework .file-link {
+                    color: #d97706;
+                    border-color: #fbbf24;
+                }
+                
+                .homework .file-link:hover {
+                    background: #f59e0b;
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+                }
+                
+                /* Responsive */
+                @media (max-width: 768px) {
+                    body {
+                        padding: 16px;
+                    }
+                    
+                    .container {
+                        border-radius: 12px;
+                    }
+                    
+                    .header {
+                        padding: 32px 20px;
+                    }
+                    
+                    .header h1 {
+                        font-size: 28px;
+                    }
+                    
+                    .content {
+                        padding: 20px;
+                    }
+                    
+                    .section-title {
+                        font-size: 22px;
+                    }
+                    
+                    .activity {
+                        padding: 16px;
+                    }
+                    
+                    .homework {
+                        padding: 20px;
+                        margin-top: 24px;
+                    }
+                    
+                    .file-link {
+                        display: block;
+                        text-align: center;
+                        margin: 0 0 8px 0;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>${this.formatDate(classData.date).full}</h1>
+                </div>
+                
+                <div class="content">
+                    <h2 class="section-title">Activities</h2>
+        `;
+        
+        classData.activities.forEach((activity, index) => {
+            htmlContent += `
+            <div class="activity">
+                <div class="activity-header">
+                    <span class="activity-number">${index + 1}.</span>
+                    <span class="activity-type">${activity.type}</span>
+                </div>
+                <p>${activity.textHtml || activity.text}</p>
+            `;
+            
+            // Agregar archivos como data URLs
+            if (activity.files && activity.files.length > 0) {
+                htmlContent += `
+                <div class="files-section">
+                `;
+                activity.files.forEach(file => {
+                    const fileData = this.fileStorage.get(file.id);
+                    if (fileData) {
+                        htmlContent += `<a href="${fileData.data}" download="${file.name}" class="file-link">${file.name}</a>`;
+                    }
+                });
+                htmlContent += '</div>';
+            }
+            
+            htmlContent += '</div>';
+        });
+        
+        if (classData.homework) {
+            htmlContent += `
+            <div class="homework">
+                <h2>Homework</h2>
+                <p>${classData.homeworkHtml || classData.homework}</p>
+            `;
+            
+            if (classData.homeworkFiles && classData.homeworkFiles.length > 0) {
+                htmlContent += `
+                <div class="files-section">
+                    <div class="files-title">Files</div>
+                `;
+                classData.homeworkFiles.forEach(file => {
+                    const fileData = this.fileStorage.get(file.id);
+                    if (fileData) {
+                        htmlContent += `<a href="${fileData.data}" download="${file.name}" class="file-link">${file.name}</a>`;
+                    }
+                });
+                htmlContent += '</div>';
+            }
+            
+            htmlContent += '</div>';
+        }
+        
+        htmlContent += `
+                </div>
+            </div>
+        </body>
+        </html>`;
+        
+        // Crear y descargar archivo HTML
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `english-class-${classData.date}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 }
 
@@ -1669,21 +1990,12 @@ function toggleClassExpansion(classId) {
 }
 
 // Share functions
-function shareAsUrl() {
+function exportClassWithFiles() {
     if (!planner.currentShareClassId) return;
     
-    const shareableContent = planner.generateShareableContent(planner.currentShareClassId);
-    const compressed = btoa(JSON.stringify(shareableContent));
-    const url = `${window.location.origin}${window.location.pathname}?share=${compressed}`;
-    
-    navigator.clipboard.writeText(url).then(() => {
-        document.getElementById('shareSuccess').classList.add('active');
-        setTimeout(() => {
-            planner.closeShareModal();
-        }, 2000);
-    }).catch(() => {
-        planner.showNotification('⚠️ No se pudo copiar al portapapeles', 'warning');
-    });
+    planner.generateClassWithFiles(planner.currentShareClassId);
+    planner.showNotification('📁 Archivo HTML generado con archivos', 'success');
+    planner.closeShareModal();
 }
 
 function shareAsJson() {
