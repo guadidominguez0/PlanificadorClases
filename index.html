@@ -1,243 +1,427 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>English Class Planner</title>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header class="header-with-nav">
-            <div class="header-content">
-                <div class="logo-section">
-                    <h1>English Class Planner</h1>
-                </div>
-                
-                <!-- Tab Navigation -->
-                <nav class="tab-navigation-header">
-                    <button class="tab-button active" onclick="switchTab('create')" data-tab="create">
-                        ➕ Crear Clase
-                    </button>
-                    <button class="tab-button" onclick="switchTab('view')" data-tab="view">
-                        📚 Ver Clases
-                    </button>
-                    <button class="tab-button" onclick="switchTab('settings')" data-tab="settings">
-                        ⚙️ Configuración
-                    </button>
-                </nav>
-            </div>
-        </header>
+      <header class="header-with-nav">
+        <div class="header-content">
+          <div class="logo-section">
+            <h1>English Class Planner</h1>
+          </div>
 
-        <!-- Create Class Tab -->
-        <div id="createTab" class="tab-content active">
-            <div class="card">
-                <h2>📝 Nueva Clase</h2>
-                <form id="classForm">
-                    <div class="form-group">
-                        <label for="classDate">Fecha de la Clase</label>
-                        <input type="date" id="classDate" required>
-                    </div>
-
-                    <div class="form-group activities-section">
-                        <label>Actividades de la Clase</label>
-                        <div id="activitiesList">
-                            <!-- Las actividades se generan dinámicamente -->
-                        </div>
-                        <button type="button" class="add-activity" onclick="addActivity()">+ Agregar Actividad</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="homework">Tarea (Homework)</label>
-                        <textarea id="homework" placeholder="Ej: Make a question with each verb"></textarea>
-                        
-                        <!-- Homework Resources Section -->
-                        <button type="button" class="add-resource-trigger homework-resources-trigger" onclick="toggleHomeworkResources()">
-                            📎 Agregar recursos para la tarea
-                        </button>
-                        <div id="homeworkResourcesSection" class="resources-main-section">
-                            <div class="resource-type-selector">
-                                <button type="button" class="resource-type-btn active" onclick="toggleHomeworkResourceType(this, 'file')">
-                                    📎 Subir archivo
-                                </button>
-                                <button type="button" class="resource-type-btn" onclick="toggleHomeworkResourceType(this, 'link')">
-                                    🔗 Agregar enlace
-                                </button>
-                            </div>
-                            
-                            <div class="file-upload-section">
-                                <div class="file-upload-area" onclick="triggerHomeworkFileInput()">
-                                    <input type="file" id="homeworkFileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleHomeworkFileSelect(this)">
-                                    <div class="file-upload-text">📎 Subir archivos</div>
-                                    <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
-                                </div>
-                                <div id="homeworkUploadedFiles" class="uploaded-files"></div>
-                            </div>
-                            
-                            <div class="link-upload-section" style="display: none;">
-                                <div class="add-resource-section">
-                                    <div class="resource-inputs">
-                                        <input type="text" id="homeworkResourceName" placeholder="Nombre del recurso">
-                                        <input type="url" id="homeworkResourceUrl" placeholder="https://...">
-                                    </div>
-                                    <button type="button" class="add-resource-btn" onclick="addHomeworkLinkResource()">📎 Agregar Enlace</button>
-                                </div>
-                                <div id="homeworkLinkResourcesList" class="link-resources-list"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn">💾 Guardar Clase</button>
-                </form>
-            </div>
+          <!-- Tab Navigation -->
+          <nav class="tab-navigation-header">
+            <button
+              class="tab-button active"
+              onclick="switchTab('create')"
+              data-tab="create"
+            >
+              ➕ Crear Clase
+            </button>
+            <button
+              class="tab-button"
+              onclick="switchTab('view')"
+              data-tab="view"
+            >
+              📚 Ver Clases
+            </button>
+            <button
+              class="tab-button"
+              onclick="switchTab('settings')"
+              data-tab="settings"
+            >
+              ⚙️ Configuración
+            </button>
+            <button
+              class="tab-button"
+              onclick="switchTab('translate')"
+              data-tab="translate"
+            >
+              🌐 Traducción
+            </button>
+          </nav>
         </div>
+      </header>
 
-        <!-- View Classes Tab -->
-        <div id="viewTab" class="tab-content">
-            <div class="card">
-                <div class="classes-header">
-                    <h2>📚 Clases</h2>
-                    <button id="expandAllBtn" class="expand-all-btn" onclick="toggleAllClasses()">
-                        <span id="expandAllIcon">📖</span>
-                        <span id="expandAllText">Expandir todas</span>
+      <!-- Create Class Tab -->
+      <div id="createTab" class="tab-content active">
+        <div class="card">
+          <h2>📝 Nueva Clase</h2>
+          <form id="classForm">
+            <div class="form-group">
+              <label for="classDate">Fecha de la Clase</label>
+              <input type="date" id="classDate" required />
+            </div>
+
+            <div class="form-group activities-section">
+              <label>Actividades de la Clase</label>
+              <div id="activitiesList">
+                <!-- Las actividades se generan dinámicamente -->
+              </div>
+              <button
+                type="button"
+                class="add-activity"
+                onclick="addActivity()"
+              >
+                + Agregar Actividad
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label for="homework">Tarea (Homework)</label>
+              <textarea
+                id="homework"
+                placeholder="Ej: Make a question with each verb"
+              ></textarea>
+
+              <!-- Homework Resources Section -->
+              <button
+                type="button"
+                class="add-resource-trigger homework-resources-trigger"
+                onclick="toggleHomeworkResources()"
+              >
+                📎 Agregar recursos para la tarea
+              </button>
+              <div id="homeworkResourcesSection" class="resources-main-section">
+                <div class="resource-type-selector">
+                  <button
+                    type="button"
+                    class="resource-type-btn active"
+                    onclick="toggleHomeworkResourceType(this, 'file')"
+                  >
+                    📎 Subir archivo
+                  </button>
+                  <button
+                    type="button"
+                    class="resource-type-btn"
+                    onclick="toggleHomeworkResourceType(this, 'link')"
+                  >
+                    🔗 Agregar enlace
+                  </button>
+                </div>
+
+                <div class="file-upload-section">
+                  <div
+                    class="file-upload-area"
+                    onclick="triggerHomeworkFileInput()"
+                  >
+                    <input
+                      type="file"
+                      id="homeworkFileInput"
+                      class="file-input"
+                      accept=".pdf,.jpg,.jpeg,.png,.gif"
+                      multiple
+                      onchange="handleHomeworkFileSelect(this)"
+                    />
+                    <div class="file-upload-text">📎 Subir archivos</div>
+                    <div class="file-upload-hint">
+                      Arrastra archivos aquí o haz clic para seleccionar<br />Soporta:
+                      PDF, JPG, PNG, GIF (máx. 10MB)
+                    </div>
+                  </div>
+                  <div id="homeworkUploadedFiles" class="uploaded-files"></div>
+                </div>
+
+                <div class="link-upload-section" style="display: none">
+                  <div class="add-resource-section">
+                    <div class="resource-inputs">
+                      <input
+                        type="text"
+                        id="homeworkResourceName"
+                        placeholder="Nombre del recurso"
+                      />
+                      <input
+                        type="url"
+                        id="homeworkResourceUrl"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="add-resource-btn"
+                      onclick="addHomeworkLinkResource()"
+                    >
+                      📎 Agregar Enlace
                     </button>
+                  </div>
+                  <div
+                    id="homeworkLinkResourcesList"
+                    class="link-resources-list"
+                  ></div>
                 </div>
-                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar en clases...">
-                <div id="classesList" class="classes-grid">
-                    <div class="empty-state">
-                        <p>No tienes clases planificadas aún.<br>¡Crea tu primera clase de inglés!</p>
-                    </div>
-                </div>
+              </div>
             </div>
+
+            <button type="submit" class="btn">💾 Guardar Clase</button>
+          </form>
         </div>
+      </div>
 
-        <!-- Settings Tab -->
-        <div id="settingsTab" class="tab-content">
-            <div class="card">
-                <h2>⚙️ Configuración y Respaldos</h2>
-                
-                <div class="settings-section">
-                    <h3>📊 Información de Almacenamiento</h3>
-                    <div id="storageInfo" class="storage-info">
-                        <div class="storage-stat">
-                            <span class="stat-label">Clases guardadas:</span>
-                            <span id="classCount" class="stat-value">0</span>
-                        </div>
-                        <div class="storage-stat">
-                            <span class="stat-label">Archivos guardados:</span>
-                            <span id="fileCount" class="stat-value">0</span>
-                        </div>
-                        <div class="storage-stat">
-                            <span class="stat-label">Espacio usado:</span>
-                            <span id="storageSize" class="stat-value">0 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <h3>💾 Gestión de Datos</h3>
-                    <div class="backup-controls">
-                        <button class="btn btn-secondary" onclick="planner.exportData()">
-                            📥 Exportar Datos
-                        </button>
-                        <div class="import-section">
-                            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(this)">
-                            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
-                                📤 Importar Datos
-                            </button>
-                        </div>
-                        <button class="btn btn-danger" onclick="planner.clearAllData()">
-                            🗑️ Eliminar Todo
-                        </button>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <h3>ℹ️ Acerca de</h3>
-                    <div class="app-info">
-                        <p><strong>English Class Planner v1.0</strong></p>
-                        <p>Planificador de clases de inglés con almacenamiento local persistente.</p>
-                        <p>Los datos se guardan automáticamente en tu navegador y permanecen disponibles entre sesiones.</p>
-                    </div>
-                </div>
+      <!-- View Classes Tab -->
+      <div id="viewTab" class="tab-content">
+        <div class="card">
+          <div class="classes-header">
+            <h2>📚 Clases</h2>
+            <button
+              id="expandAllBtn"
+              class="expand-all-btn"
+              onclick="toggleAllClasses()"
+            >
+              <span id="expandAllIcon">📖</span>
+              <span id="expandAllText">Expandir todas</span>
+            </button>
+          </div>
+          <input
+            type="text"
+            id="searchBox"
+            class="search-box"
+            placeholder="🔍 Buscar en clases..."
+          />
+          <div id="classesList" class="classes-grid">
+            <div class="empty-state">
+              <p>
+                No tienes clases planificadas aún.<br />¡Crea tu primera clase
+                de inglés!
+              </p>
             </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="settingsTab" class="tab-content">
+        <div class="card">
+          <h2>⚙️ Configuración y Respaldos</h2>
+
+          <div class="settings-section">
+            <h3>📊 Información de Almacenamiento</h3>
+            <div id="storageInfo" class="storage-info">
+              <div class="storage-stat">
+                <span class="stat-label">Clases guardadas:</span>
+                <span id="classCount" class="stat-value">0</span>
+              </div>
+              <div class="storage-stat">
+                <span class="stat-label">Archivos guardados:</span>
+                <span id="fileCount" class="stat-value">0</span>
+              </div>
+              <div class="storage-stat">
+                <span class="stat-label">Espacio usado:</span>
+                <span id="storageSize" class="stat-value">0 KB</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>💾 Gestión de Datos</h3>
+            <div class="backup-controls">
+              <button class="btn btn-secondary" onclick="planner.exportData()">
+                📥 Exportar Datos
+              </button>
+              <div class="import-section">
+                <input
+                  type="file"
+                  id="importFile"
+                  accept=".json"
+                  style="display: none"
+                  onchange="handleImport(this)"
+                />
+                <button
+                  class="btn btn-secondary"
+                  onclick="document.getElementById('importFile').click()"
+                >
+                  📤 Importar Datos
+                </button>
+              </div>
+              <button class="btn btn-danger" onclick="planner.clearAllData()">
+                🗑️ Eliminar Todo
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>ℹ️ Acerca de</h3>
+            <div class="app-info">
+              <p><strong>English Class Planner v1.0</strong></p>
+              <p>
+                Planificador de clases de inglés con almacenamiento local
+                persistente.
+              </p>
+              <p>
+                Los datos se guardan automáticamente en tu navegador y
+                permanecen disponibles entre sesiones.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translate Tab -->
+      <div id="translateTab" class="tab-content">
+        <div class="card">
+          <h2>🌐 Traductor</h2>
+
+          <div class="translate-container">
+            <div class="translate-panel">
+              <div class="translate-header">
+                <select id="sourceLang" class="lang-select">
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                </select>
+                <button
+                  class="swap-languages-btn"
+                  onclick="swapLanguages()"
+                  title="Intercambiar idiomas"
+                >
+                  🔄
+                </button>
+                <select id="targetLang" class="lang-select">
+                  <option value="es">Español</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+
+              <div class="translate-content">
+                <div class="translate-input-section">
+                  <label for="sourceText">Texto original:</label>
+                  <textarea
+                    id="sourceText"
+                    placeholder="Escribe o pega el texto aquí..."
+                    rows="8"
+                  ></textarea>
+                  <div class="char-count" id="sourceCharCount">
+                    0 / 5000 caracteres
+                  </div>
+                </div>
+
+                <div class="translate-output-section">
+                  <label for="targetText">Traducción:</label>
+                  <textarea
+                    id="targetText"
+                    placeholder="La traducción aparecerá aquí..."
+                    rows="8"
+                    readonly
+                  ></textarea>
+                  <button
+                    class="copy-translation-btn"
+                    onclick="copyTranslation()"
+                    title="Copiar traducción"
+                  >
+                    📋 Copiar
+                  </button>
+                </div>
+              </div>
+
+              <div class="translate-actions">
+                <button class="btn" onclick="translateText()">
+                  🌐 Traducir
+                </button>
+                <button class="btn btn-secondary" onclick="clearTranslation()">
+                  🗑️ Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Class Detail Modal -->
     <div id="classDetailModal" class="modal class-detail-modal">
-        <div class="modal-content class-detail-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="classDetailTitle">Detalles de la Clase</h3>
-                <button class="modal-close" onclick="closeClassDetailModal()">×</button>
-            </div>
-            <div class="modal-body" id="classDetailBody">
-                <!-- Class detail content will be inserted here -->
-            </div>
+      <div class="modal-content class-detail-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="classDetailTitle">
+            Detalles de la Clase
+          </h3>
+          <button class="modal-close" onclick="closeClassDetailModal()">
+            ×
+          </button>
         </div>
+        <div class="modal-body" id="classDetailBody">
+          <!-- Class detail content will be inserted here -->
+        </div>
+      </div>
     </div>
 
     <!-- File Preview Modal -->
     <div id="fileModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Vista previa</h3>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- File preview content will be inserted here -->
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Vista previa</h3>
+          <button class="modal-close" onclick="closeModal()">×</button>
         </div>
+        <div class="modal-body" id="modalBody">
+          <!-- File preview content will be inserted here -->
+        </div>
+      </div>
     </div>
 
     <!-- Share Class Modal -->
     <div id="shareModal" class="share-modal">
-        <div class="share-modal-content">
-            <div class="share-modal-header">
-                <h3 class="share-modal-title">Compartir Clase</h3>
-            </div>
-            <div class="share-modal-body">
-                <div id="shareSuccess" class="share-success">
-                    ✅ Enlace copiado al portapapeles
-                </div>
-                
-                <div class="share-options">
-                    <div class="share-option" onclick="shareAsJson()">
-                        <div class="share-option-icon">📄</div>
-                        <div class="share-option-content">
-                            <div class="share-option-title">Descargar archivo</div>
-                            <div class="share-option-description">Guardar la clase como archivo JSON</div>
-                        </div>
-                    </div>
-
-                    <div class="share-option" onclick="exportClassWithFiles()">
-                        <div class="share-option-icon">📁</div>
-                        <div class="share-option-content">
-                            <div class="share-option-title">Exportar con archivos</div>
-                            <div class="share-option-description">Descargar archivo HTML con todos los archivos incluidos</div>
-                        </div>
-                    </div>
-                    
-                    <div class="share-option" onclick="shareAsText()">
-                        <div class="share-option-icon">📝</div>
-                        <div class="share-option-content">
-                            <div class="share-option-title">Copiar como texto</div>
-                            <div class="share-option-description">Copiar el contenido de la clase como texto plano</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="share-actions">
-                    <button class="btn btn-secondary" onclick="closeShareModal()">Cancelar</button>
-                </div>
-            </div>
+      <div class="share-modal-content">
+        <div class="share-modal-header">
+          <h3 class="share-modal-title">Compartir Clase</h3>
         </div>
+        <div class="share-modal-body">
+          <div id="shareSuccess" class="share-success">
+            ✅ Enlace copiado al portapapeles
+          </div>
+
+          <div class="share-options">
+            <div class="share-option" onclick="shareAsJson()">
+              <div class="share-option-icon">📄</div>
+              <div class="share-option-content">
+                <div class="share-option-title">Descargar archivo</div>
+                <div class="share-option-description">
+                  Guardar la clase como archivo JSON
+                </div>
+              </div>
+            </div>
+
+            <div class="share-option" onclick="exportClassWithFiles()">
+              <div class="share-option-icon">📁</div>
+              <div class="share-option-content">
+                <div class="share-option-title">Exportar con archivos</div>
+                <div class="share-option-description">
+                  Descargar archivo HTML con todos los archivos incluidos
+                </div>
+              </div>
+            </div>
+
+            <div class="share-option" onclick="shareAsText()">
+              <div class="share-option-icon">📝</div>
+              <div class="share-option-content">
+                <div class="share-option-title">Copiar como texto</div>
+                <div class="share-option-description">
+                  Copiar el contenido de la clase como texto plano
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-actions">
+            <button class="btn btn-secondary" onclick="closeShareModal()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
-</body>
+  </body>
 </html>
