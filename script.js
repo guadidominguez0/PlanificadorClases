@@ -99,8 +99,9 @@ class EnglishClassPlanner {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `english-classes-backup-${new Date().toISOString().split("T")[0]
-      }.json`;
+    a.download = `english-classes-backup-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -196,7 +197,6 @@ class EnglishClassPlanner {
   saveCourses() {
     localStorage.setItem("englishCourses", JSON.stringify(this.courses));
   }
-
 
   setTodayAsDefault() {
     const today = new Date().toISOString().split("T")[0];
@@ -412,10 +412,12 @@ class EnglishClassPlanner {
                 </div>
             </div>
             <div class="file-actions">
-                <button class="file-preview-btn" onclick="previewFile('${fileData.id
-      }')" title="Ver archivo"></button>
-                <button class="file-remove-btn" onclick="${type === "homework" ? "removeHomeworkFile" : "removeFile"
-      }(this, '${fileData.id}')" title="Eliminar">🗑️</button>
+                <button class="file-preview-btn" onclick="previewFile('${
+                  fileData.id
+                }')" title="Ver archivo"></button>
+                <button class="file-remove-btn" onclick="${
+                  type === "homework" ? "removeHomeworkFile" : "removeFile"
+                }(this, '${fileData.id}')" title="Eliminar">🗑️</button>
             </div>
         `;
 
@@ -454,7 +456,7 @@ class EnglishClassPlanner {
         return (
           e.clientY <=
           sibling.getBoundingClientRect().top +
-          sibling.getBoundingClientRect().height / 2
+            sibling.getBoundingClientRect().height / 2
         );
       });
 
@@ -604,27 +606,29 @@ class EnglishClassPlanner {
         const filesHtml =
           activity.files && activity.files.length > 0
             ? `<div class="activity-files">${activity.files
-              .map((file) => this.createFileDisplay(file))
-              .join("")}</div>`
+                .map((file) => this.createFileDisplay(file))
+                .join("")}</div>`
             : "";
 
         const linksHtml =
           activity.links && activity.links.length > 0
             ? `<div class="activity-files">${activity.links
-              .map(
-                (link) =>
-                  `<a href="${link.url}" target="_blank" class="file-display-item"> ${link.name}</a>`
-              )
-              .join("")}</div>`
+                .map(
+                  (link) =>
+                    `<a href="${link.url}" target="_blank" class="file-display-item"> ${link.name}</a>`
+                )
+                .join("")}</div>`
             : "";
 
         return `
                 <div class="activity-display">
-                    <div class="activity-type-badge type-${activity.type}">${activity.type
-          }</div>
+                    <div class="activity-type-badge type-${activity.type}">${
+          activity.type
+        }</div>
                     <div class="activity-content">
-                        <div class="activity-text">${activity.textHtml || activity.text
-          }</div>
+                        <div class="activity-text">${
+                          activity.textHtml || activity.text
+                        }</div>
                         ${filesHtml}
                         ${linksHtml}
                     </div>
@@ -639,25 +643,28 @@ class EnglishClassPlanner {
                     <div class="homework-title">
                         Homework:
                     </div>
-                    <div class="homework-content">${classData.homeworkHtml || classData.homework
-      }</div>
-                    ${classData.homeworkFiles &&
-        classData.homeworkFiles.length > 0
-        ? `<div class="activity-files">${classData.homeworkFiles
-          .map((file) => this.createFileDisplay(file))
-          .join("")}</div>`
-        : ""
-      }
-                    ${classData.homeworkLinks &&
-        classData.homeworkLinks.length > 0
-        ? `<div class="activity-files">${classData.homeworkLinks
-          .map(
-            (link) =>
-              `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-          )
-          .join("")}</div>`
-        : ""
-      }
+                    <div class="homework-content">${
+                      classData.homeworkHtml || classData.homework
+                    }</div>
+                    ${
+                      classData.homeworkFiles &&
+                      classData.homeworkFiles.length > 0
+                        ? `<div class="activity-files">${classData.homeworkFiles
+                            .map((file) => this.createFileDisplay(file))
+                            .join("")}</div>`
+                        : ""
+                    }
+                    ${
+                      classData.homeworkLinks &&
+                      classData.homeworkLinks.length > 0
+                        ? `<div class="activity-files">${classData.homeworkLinks
+                            .map(
+                              (link) =>
+                                `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
+                            )
+                            .join("")}</div>`
+                        : ""
+                    }
                 </div>
             `
       : "";
@@ -725,56 +732,68 @@ class EnglishClassPlanner {
   }
 
   addClass() {
-  const courseId = document.getElementById("courseName").value;
-  if (!courseId) {
-    this.showNotification("Por favor selecciona un curso", "warning");
-    return;
+    const courseId = document.getElementById("courseName").value;
+    if (!courseId) {
+      this.showNotification("Por favor selecciona un curso", "warning");
+      return;
+    }
+
+    const date = document.getElementById("classDate").value;
+    const homeworkContent = this.homeworkQuillEditor
+      ? this.getRichTextContent(this.homeworkQuillEditor)
+      : { html: "", text: "" };
+    const homework = homeworkContent.text;
+    const activities = this.getActivitiesFromForm();
+
+    if (activities.length === 0) {
+      this.showNotification(
+        "Agrega al menos una actividad para la clase",
+        "warning"
+      );
+      return;
+    }
+
+    const classData = {
+      id: this.isEditing ? this.editingClassId : Date.now().toString(),
+      date: date,
+      courseId: courseId,
+      activities: activities,
+      homework: homework,
+      homeworkHtml: homeworkContent.html,
+      homeworkFiles: this.homeworkResources.files || [],
+      homeworkLinks: this.homeworkResources.links || [],
+    };
+
+    // Si estamos editando, primero eliminar la clase original
+    if (this.isEditing && this.editingClassId) {
+      this.classes = this.classes.filter((c) => c.id !== this.editingClassId);
+    }
+
+    this.classes.unshift(classData);
+    this.saveClasses();
+    this.renderClasses();
+    this.resetForm();
+    this.showStorageInfo();
+
+    this.isEditing = false;
+    this.editingClassId = null;
+    this.hideCancelButton();
+
+    this.showNotification("Clase guardada exitosamente", "success");
+    switchTab("view");
   }
-
-  const date = document.getElementById("classDate").value;
-  const homeworkContent = this.homeworkQuillEditor ? this.getRichTextContent(this.homeworkQuillEditor) : { html: "", text: "" };
-  const homework = homeworkContent.text;
-  const activities = this.getActivitiesFromForm();
-
-  if (activities.length === 0) {
-    this.showNotification("Agrega al menos una actividad para la clase", "warning");
-    return;
-  }
-
-  const classData = {
-    id: this.isEditing ? this.editingClassId : Date.now().toString(),
-    date: date,
-    courseId: courseId,
-    activities: activities,
-    homework: homework,
-    homeworkHtml: homeworkContent.html,
-    homeworkFiles: this.homeworkResources.files || [],
-    homeworkLinks: this.homeworkResources.links || [],
-  };
-
-  // Si estamos editando, primero eliminar la clase original
-  if (this.isEditing && this.editingClassId) {
-    this.classes = this.classes.filter(c => c.id !== this.editingClassId);
-  }
-
-  this.classes.unshift(classData);
-  this.saveClasses();
-  this.renderClasses();
-  this.resetForm();
-  this.showStorageInfo();
-  
-  this.isEditing = false;
-  this.editingClassId = null;
-  this.hideCancelButton();
-  
-  this.showNotification("Clase guardada exitosamente", "success");
-  switchTab("view");
-}
 
   getClassesByCourse(courseId) {
     console.log("Buscando clases para courseId:", courseId);
-    const filtered = this.classes.filter(c => {
-      console.log("Clase:", c.id, "courseId:", c.courseId, "Match:", c.courseId === courseId);
+    const filtered = this.classes.filter((c) => {
+      console.log(
+        "Clase:",
+        c.id,
+        "courseId:",
+        c.courseId,
+        "Match:",
+        c.courseId === courseId
+      );
       return c.courseId === courseId;
     });
     console.log("Clases filtradas:", filtered.length);
@@ -830,23 +849,23 @@ class EnglishClassPlanner {
       const classesInCourse = this.getClassesByCourse(courseId);
 
       // Eliminar archivos asociados
-      classesInCourse.forEach(classData => {
-        classData.activities.forEach(activity => {
+      classesInCourse.forEach((classData) => {
+        classData.activities.forEach((activity) => {
           if (activity.files) {
-            activity.files.forEach(file => {
+            activity.files.forEach((file) => {
               this.fileStorage.delete(file.id);
             });
           }
         });
         if (classData.homeworkFiles) {
-          classData.homeworkFiles.forEach(file => {
+          classData.homeworkFiles.forEach((file) => {
             this.fileStorage.delete(file.id);
           });
         }
       });
 
-      this.classes = this.classes.filter(c => c.courseId !== courseId);
-      this.courses = this.courses.filter(c => c.id !== courseId);
+      this.classes = this.classes.filter((c) => c.courseId !== courseId);
+      this.courses = this.courses.filter((c) => c.id !== courseId);
       this.saveClasses();
       this.saveCourses();
       this.saveFileStorage();
@@ -858,7 +877,7 @@ class EnglishClassPlanner {
   }
 
   editCourse(courseId, newName, newDescription = "") {
-    const course = this.courses.find(c => c.id === courseId);
+    const course = this.courses.find((c) => c.id === courseId);
     if (course) {
       course.name = newName;
       course.description = newDescription;
@@ -954,12 +973,12 @@ class EnglishClassPlanner {
   }
 
   editClass(id) {
-    const classData = this.classes.find(c => c.id === id);
+    const classData = this.classes.find((c) => c.id === id);
     if (!classData) return;
 
     this.isEditing = true;
     this.editingClassId = id;
-    this.showCancelButton()
+    this.showCancelButton();
 
     switchTab("create");
 
@@ -969,7 +988,10 @@ class EnglishClassPlanner {
     // Cargar homework
     if (this.homeworkQuillEditor && classData.homeworkHtml) {
       setTimeout(() => {
-        this.setRichTextContent(this.homeworkQuillEditor, classData.homeworkHtml);
+        this.setRichTextContent(
+          this.homeworkQuillEditor,
+          classData.homeworkHtml
+        );
       }, 300);
     } else if (this.homeworkQuillEditor && classData.homework) {
       setTimeout(() => {
@@ -983,23 +1005,28 @@ class EnglishClassPlanner {
       links: [...(classData.homeworkLinks || [])],
     };
 
-    const homeworkUploadedFiles = document.getElementById("homeworkUploadedFiles");
-    const homeworkLinksList = document.getElementById("homeworkLinkResourcesList");
+    const homeworkUploadedFiles = document.getElementById(
+      "homeworkUploadedFiles"
+    );
+    const homeworkLinksList = document.getElementById(
+      "homeworkLinkResourcesList"
+    );
     if (homeworkUploadedFiles) homeworkUploadedFiles.innerHTML = "";
     if (homeworkLinksList) homeworkLinksList.innerHTML = "";
 
     if (classData.homeworkFiles && classData.homeworkFiles.length > 0) {
-      classData.homeworkFiles.forEach(fileRef => {
+      classData.homeworkFiles.forEach((fileRef) => {
         const fileData = this.fileStorage.get(fileRef.id);
         if (fileData) {
           const fileItem = this.createDraggableFileItem(fileData, "homework");
-          if (homeworkUploadedFiles) homeworkUploadedFiles.appendChild(fileItem);
+          if (homeworkUploadedFiles)
+            homeworkUploadedFiles.appendChild(fileItem);
         }
       });
     }
 
     if (classData.homeworkLinks && classData.homeworkLinks.length > 0) {
-      classData.homeworkLinks.forEach(link => {
+      classData.homeworkLinks.forEach((link) => {
         this.addHomeworkLinkResourceToDOM(link.name, link.url);
       });
     }
@@ -1014,11 +1041,12 @@ class EnglishClassPlanner {
       const activityElement = activitiesList.children[index];
 
       // Establecer el tipo de actividad
-      activityElement.querySelector(".activity-type-select").value = activity.type;
+      activityElement.querySelector(".activity-type-select").value =
+        activity.type;
 
       // Agregar archivos
       if (activity.files && activity.files.length > 0) {
-        activity.files.forEach(fileRef => {
+        activity.files.forEach((fileRef) => {
           const fileData = this.fileStorage.get(fileRef.id);
           if (fileData) this.addFileToActivity(activityElement, fileData);
         });
@@ -1026,7 +1054,7 @@ class EnglishClassPlanner {
 
       // Agregar links
       if (activity.links && activity.links.length > 0) {
-        activity.links.forEach(link => {
+        activity.links.forEach((link) => {
           this.addLinkResourceToActivity(activityElement, link.name, link.url);
         });
       }
@@ -1034,11 +1062,15 @@ class EnglishClassPlanner {
 
     // Cargar el contenido de texto de las actividades DESPUÉS de que los editores estén listos
     setTimeout(() => {
-      const activityElements = activitiesList.querySelectorAll(".activity-item");
+      const activityElements =
+        activitiesList.querySelectorAll(".activity-item");
       classData.activities.forEach((activity, index) => {
         if (activityElements[index] && activityElements[index].quillEditor) {
           if (activity.textHtml) {
-            this.setRichTextContent(activityElements[index].quillEditor, activity.textHtml);
+            this.setRichTextContent(
+              activityElements[index].quillEditor,
+              activity.textHtml
+            );
           } else if (activity.text) {
             activityElements[index].quillEditor.setText(activity.text);
           }
@@ -1053,7 +1085,10 @@ class EnglishClassPlanner {
   // Creación o selección del curso
   createCourse(courseName) {
     if (!courseName.trim()) {
-      this.showNotification("El nombre del curso no puede estar vacío", "warning");
+      this.showNotification(
+        "El nombre del curso no puede estar vacío",
+        "warning"
+      );
       return null;
     }
 
@@ -1072,10 +1107,16 @@ class EnglishClassPlanner {
   }
 
   getRandomColor() {
-    const colors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#06b6d4"];
+    const colors = [
+      "#3b82f6",
+      "#ef4444",
+      "#22c55e",
+      "#f59e0b",
+      "#8b5cf6",
+      "#06b6d4",
+    ];
     return colors[Math.floor(Math.random() * colors.length)];
   }
-
 
   addLinkResourceToActivity(activityElement, name, url) {
     const linksList = activityElement.querySelector(".link-resources-list");
@@ -1201,7 +1242,8 @@ class EnglishClassPlanner {
     const container = document.getElementById("classesList");
 
     // Si hay un curso seleccionado, mostrar solo sus clases
-    let classesForDisplay = classesToRender ||
+    let classesForDisplay =
+      classesToRender ||
       (this.currentCourseId
         ? this.getClassesByCourse(this.currentCourseId)
         : this.classes);
@@ -1235,24 +1277,29 @@ class EnglishClassPlanner {
           (classData.homeworkFiles?.length || 0) +
           (classData.homeworkLinks?.length || 0);
 
-        const summaryText = `${activitiesCount} actividad${activitiesCount !== 1 ? "es" : ""
-          } • Tipos: ${activityTypes.join(", ")}${totalResources > 0
+        const summaryText = `${activitiesCount} actividad${
+          activitiesCount !== 1 ? "es" : ""
+        } • Tipos: ${activityTypes.join(", ")}${
+          totalResources > 0
             ? ` • ${totalResources} recurso${totalResources !== 1 ? "s" : ""}`
             : ""
-          }${hasHomework ? " • Con tarea" : ""}`;
+        }${hasHomework ? " • Con tarea" : ""}`;
 
         return `
-                <div class="class-item compressed fade-in" data-class-id="${classData.id
-          }" onclick="toggleClassExpansion('${classData.id}', event)">
+                <div class="class-item compressed fade-in" data-class-id="${
+                  classData.id
+                }" onclick="toggleClassExpansion('${classData.id}', event)">
                     <div class="class-header">
                         <div class="class-date-title">
-                            <span class="class-weekday">${dateInfo.weekday
-          }</span>
+                            <span class="class-weekday">${
+                              dateInfo.weekday
+                            }</span>
                             ${dateInfo.dayNumber}
                         </div>
                         <div class="class-header-actions">
-                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${classData.id
-          }')" class="view-full-btn" title="Ver en pantalla completa">
+                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${
+                              classData.id
+                            }')" class="view-full-btn" title="Ver en pantalla completa">
                                 Ver completa
                             </button>
                         </div>
@@ -1264,79 +1311,88 @@ class EnglishClassPlanner {
                     
                     <div class="activities-list" style="display: none;">
                         ${classData.activities
-            .map((activity) => {
-              const filesHtml =
-                activity.files && activity.files.length > 0
-                  ? `<div class="activity-files">${activity.files
-                    .map((file) => this.createFileDisplay(file))
-                    .join("")}</div>`
-                  : "";
+                          .map((activity) => {
+                            const filesHtml =
+                              activity.files && activity.files.length > 0
+                                ? `<div class="activity-files">${activity.files
+                                    .map((file) => this.createFileDisplay(file))
+                                    .join("")}</div>`
+                                : "";
 
-              const linksHtml =
-                activity.links && activity.links.length > 0
-                  ? `<div class="activity-files">${activity.links
-                    .map(
-                      (link) =>
-                        `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-                    )
-                    .join("")}</div>`
-                  : "";
+                            const linksHtml =
+                              activity.links && activity.links.length > 0
+                                ? `<div class="activity-files">${activity.links
+                                    .map(
+                                      (link) =>
+                                        `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
+                                    )
+                                    .join("")}</div>`
+                                : "";
 
-              return `
+                            return `
                                 <div class="activity-display">
-                                    <div class="activity-type-badge type-${activity.type
-                }">${activity.type}</div>
+                                    <div class="activity-type-badge type-${
+                                      activity.type
+                                    }">${activity.type}</div>
                                     <div class="activity-content">
-                                        <div class="activity-text">${activity.textHtml || activity.text
-                }</div>
+                                        <div class="activity-text">${
+                                          activity.textHtml || activity.text
+                                        }</div>
                                         ${filesHtml}
                                         ${linksHtml}
                                     </div>
                                 </div>
                             `;
-            })
-            .join("")}
+                          })
+                          .join("")}
                     </div>
                     
-                    ${classData.homework
-            ? `
+                    ${
+                      classData.homework
+                        ? `
                         <div class="homework-section" style="display: none;">
                             <div class="homework-title">Homework:</div>
-                            <div class="homework-content">${classData.homeworkHtml || classData.homework
-            }</div>
-                            ${classData.homeworkFiles &&
-              classData.homeworkFiles.length > 0
-              ? `<div class="activity-files">${classData.homeworkFiles
-                .map((file) => this.createFileDisplay(file))
-                .join("")}</div>`
-              : ""
-            }
-                            ${classData.homeworkLinks &&
-              classData.homeworkLinks.length > 0
-              ? `<div class="activity-files">${classData.homeworkLinks
-                .map(
-                  (link) =>
-                    `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-                )
-                .join("")}</div>`
-              : ""
-            }
+                            <div class="homework-content">${
+                              classData.homeworkHtml || classData.homework
+                            }</div>
+                            ${
+                              classData.homeworkFiles &&
+                              classData.homeworkFiles.length > 0
+                                ? `<div class="activity-files">${classData.homeworkFiles
+                                    .map((file) => this.createFileDisplay(file))
+                                    .join("")}</div>`
+                                : ""
+                            }
+                            ${
+                              classData.homeworkLinks &&
+                              classData.homeworkLinks.length > 0
+                                ? `<div class="activity-files">${classData.homeworkLinks
+                                    .map(
+                                      (link) =>
+                                        `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
+                                    )
+                                    .join("")}</div>`
+                                : ""
+                            }
                         </div>
                     `
-            : ""
-          }
+                        : ""
+                    }
                     
                     <div class="class-actions" style="display: none;">
-                        <button onclick="event.stopPropagation(); planner.editClass('${classData.id
-          }')" class="btn btn-secondary btn-small">
+                        <button onclick="event.stopPropagation(); planner.editClass('${
+                          classData.id
+                        }')" class="btn btn-secondary btn-small">
                             Editar
                         </button>
-                        <button onclick="event.stopPropagation(); planner.shareClass('${classData.id
-          }')" class="btn btn-small" style="background: #22c55e;">
+                        <button onclick="event.stopPropagation(); planner.shareClass('${
+                          classData.id
+                        }')" class="btn btn-small" style="background: #22c55e;">
                             Compartir
                         </button>
-                        <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id
-          }')" class="btn btn-danger btn-small">
+                        <button onclick="event.stopPropagation(); planner.deleteClass('${
+                          classData.id
+                        }')" class="btn btn-danger btn-small">
                             Eliminar
                         </button>
                     </div>
@@ -1373,7 +1429,9 @@ class EnglishClassPlanner {
   showCancelButton() {
     let cancelBtn = document.getElementById("cancelEditBtn");
     if (!cancelBtn) {
-      const submitBtn = document.querySelector("#classForm button[type='submit']");
+      const submitBtn = document.querySelector(
+        "#classForm button[type='submit']"
+      );
       cancelBtn = document.createElement("button");
       cancelBtn.id = "cancelEditBtn";
       cancelBtn.type = "button";
@@ -1394,10 +1452,16 @@ class EnglishClassPlanner {
   }
 
   cancelEdit() {
-    if (confirm("¿Estás seguro de que deseas cancelar la edición? Los cambios no guardados se perderán.")) {
+    if (
+      confirm(
+        "¿Estás seguro de que deseas cancelar la edición? Los cambios no guardados se perderán."
+      )
+    ) {
       // Restaurar la clase original
       if (this.editingClassId) {
-        const originalClass = this.classes.find(c => c.id === this.editingClassId);
+        const originalClass = this.classes.find(
+          (c) => c.id === this.editingClassId
+        );
         if (!originalClass) {
           // Si no existe, significa que se borró al editar, no hacer nada
         }
@@ -1437,8 +1501,9 @@ class EnglishClassPlanner {
       "editor-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
 
     const editorHTML = `
-            <div class="rich-text-container ${isHomework ? "homework-rich-text-container" : ""
-      }">
+            <div class="rich-text-container ${
+              isHomework ? "homework-rich-text-container" : ""
+            }">
                 <div id="${editorId}" data-placeholder="${placeholder}"></div>
             </div>
         `;
@@ -1595,8 +1660,9 @@ class EnglishClassPlanner {
 
     text += `ACTIVIDADES:\n`;
     classData.activities.forEach((activity, index) => {
-      text += `${index + 1}. [${activity.type.toUpperCase()}] ${activity.text
-        }\n`;
+      text += `${index + 1}. [${activity.type.toUpperCase()}] ${
+        activity.text
+      }\n`;
       if (activity.files && activity.files.length > 0) {
         text += `   Archivos: ${activity.files
           .map((f) => f.name)
@@ -1640,8 +1706,9 @@ class EnglishClassPlanner {
     let htmlContent = `
         <html>
         <head>
-            <title>English Class - ${this.formatDate(classData.date).full
-      }</title>
+            <title>English Class - ${
+              this.formatDate(classData.date).full
+            }</title>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
@@ -2610,12 +2677,16 @@ function selectCourse(courseId) {
   const classesByCourse = planner.getClassesByCourse(courseId);
   console.log("Clases del curso:", classesByCourse.length);
 
-  document.querySelectorAll(".course-item").forEach(item => item.classList.remove("active"));
-  document.querySelector(`[data-course-id="${courseId}"]`)?.classList.add("active");
+  document
+    .querySelectorAll(".course-item")
+    .forEach((item) => item.classList.remove("active"));
+  document
+    .querySelector(`[data-course-id="${courseId}"]`)
+    ?.classList.add("active");
 
   // Cambiar automáticamente a la pestaña de ver clases
   console.log("Cambiando a pestaña view...");
-  switchTab('view');
+  switchTab("view");
 
   // Actualizar el selector de filtro
   const filterSelect = document.getElementById("courseFilter");
@@ -2636,7 +2707,7 @@ function selectCourse(courseId) {
 function deselectCourse() {
   planner.currentCourseId = null;
   planner.renderClasses();
-  document.querySelectorAll(".course-item").forEach(item => {
+  document.querySelectorAll(".course-item").forEach((item) => {
     item.classList.remove("active");
   });
 }
@@ -2654,23 +2725,39 @@ function renderCoursesList() {
   const container = document.getElementById("coursesList");
   if (!container) return;
 
-  container.innerHTML = planner.courses.map(course => `
+  container.innerHTML = planner.courses
+    .map(
+      (course) => `
         <div class="course-item" data-course-id="${course.id}">
-            <div class="course-header" style="border-left: 4px solid ${course.color};">
+            <div class="course-header" style="border-left: 4px solid ${
+              course.color
+            };">
                 <div class="course-name">${course.name}</div>
-                <div class="course-count">${planner.getClassesByCourse(course.id).length} clases</div>
+                <div class="course-count">${
+                  planner.getClassesByCourse(course.id).length
+                } clases</div>
             </div>
             <div class="course-actions">
-                <button onclick="console.log('Click en Ver curso:', '${course.id}'); selectCourse('${course.id}')" class="btn btn-small">Ver</button>
-                <button onclick="editCourseDialog('${course.id}')" class="btn btn-secondary btn-small">Editar</button>
-                <button onclick="planner.deleteCourse('${course.id}')" class="btn btn-danger btn-small">Eliminar</button>
+                <button onclick="console.log('Click en Ver curso:', '${
+                  course.id
+                }'); selectCourse('${
+        course.id
+      }')" class="btn btn-small">Ver</button>
+                <button onclick="editCourseDialog('${
+                  course.id
+                }')" class="btn btn-secondary btn-small">Editar</button>
+                <button onclick="planner.deleteCourse('${
+                  course.id
+                }')" class="btn btn-danger btn-small">Eliminar</button>
             </div>
         </div>
-    `).join("");
+    `
+    )
+    .join("");
 }
 
 function editCourseDialog(courseId) {
-  const course = planner.courses.find(c => c.id === courseId);
+  const course = planner.courses.find((c) => c.id === courseId);
   const newName = prompt("Nuevo nombre del curso:", course.name);
   if (newName) {
     planner.editCourse(courseId, newName);
@@ -2683,8 +2770,11 @@ function updateCourseSelectOptions() {
   const select = document.getElementById("courseName");
   if (!select) return;
 
-  const options = '<option value="">-- Selecciona un curso --</option>' +
-    planner.courses.map(course => `<option value="${course.id}">${course.name}</option>`).join("");
+  const options =
+    '<option value="">-- Selecciona un curso --</option>' +
+    planner.courses
+      .map((course) => `<option value="${course.id}">${course.name}</option>`)
+      .join("");
 
   select.innerHTML = options;
 }
@@ -2695,14 +2785,15 @@ function updateCourseFilterOptions() {
   if (!select) return;
 
   const currentValue = select.value;
-  const options = '<option value="">Todas las clases</option>' +
-    planner.courses.map(course => `<option value="${course.id}">${course.name}</option>`).join("");
+  const options =
+    '<option value="">Todas las clases</option>' +
+    planner.courses
+      .map((course) => `<option value="${course.id}">${course.name}</option>`)
+      .join("");
 
   select.innerHTML = options;
   select.value = currentValue;
 }
-
-
 
 // Event listeners for translation
 document.addEventListener("DOMContentLoaded", () => {
@@ -2727,13 +2818,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Llamar funciones de inicialización después de crear el planner
   setTimeout(() => {
-    if (typeof renderCoursesList === 'function') {
+    if (typeof renderCoursesList === "function") {
       renderCoursesList();
     }
-    if (typeof updateCourseSelectOptions === 'function') {
+    if (typeof updateCourseSelectOptions === "function") {
       updateCourseSelectOptions();
     }
-    if (typeof updateCourseFilterOptions === 'function') {
+    if (typeof updateCourseFilterOptions === "function") {
       updateCourseFilterOptions();
     }
   }, 600);
