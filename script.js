@@ -725,46 +725,51 @@ class EnglishClassPlanner {
   }
 
   addClass() {
-    const courseId = document.getElementById("courseName").value;
-    if (!courseId) {
-      this.showNotification("Por favor selecciona un curso", "warning");
-      return;
-    }
-
-    const date = document.getElementById("classDate").value;
-    const homeworkContent = this.homeworkQuillEditor ? this.getRichTextContent(this.homeworkQuillEditor) : { html: "", text: "" };
-    const homework = homeworkContent.text;
-    const activities = this.getActivitiesFromForm();
-
-    if (activities.length === 0) {
-      this.showNotification("Agrega al menos una actividad para la clase", "warning");
-      return;
-    }
-
-    const classData = {
-      id: this.isEditing ? this.editingClassId : Date.now().toString(), // MODIFICAR ESTA LÍNEA
-      date: date,
-      courseId: courseId,
-      activities: activities,
-      homework: homework,
-      homeworkHtml: homeworkContent.html,
-      homeworkFiles: this.homeworkResources.files || [],
-      homeworkLinks: this.homeworkResources.links || [],
-    };
-
-    this.classes.unshift(classData);
-    this.saveClasses();
-    this.renderClasses();
-    this.resetForm();
-    this.showStorageInfo();
-
-    this.isEditing = false;
-    this.editingClassId = null;
-    this.hideCancelButton();
-
-    this.showNotification("Clase guardada exitosamente", "success");
-    switchTab("view");
+  const courseId = document.getElementById("courseName").value;
+  if (!courseId) {
+    this.showNotification("Por favor selecciona un curso", "warning");
+    return;
   }
+
+  const date = document.getElementById("classDate").value;
+  const homeworkContent = this.homeworkQuillEditor ? this.getRichTextContent(this.homeworkQuillEditor) : { html: "", text: "" };
+  const homework = homeworkContent.text;
+  const activities = this.getActivitiesFromForm();
+
+  if (activities.length === 0) {
+    this.showNotification("Agrega al menos una actividad para la clase", "warning");
+    return;
+  }
+
+  const classData = {
+    id: this.isEditing ? this.editingClassId : Date.now().toString(),
+    date: date,
+    courseId: courseId,
+    activities: activities,
+    homework: homework,
+    homeworkHtml: homeworkContent.html,
+    homeworkFiles: this.homeworkResources.files || [],
+    homeworkLinks: this.homeworkResources.links || [],
+  };
+
+  // Si estamos editando, primero eliminar la clase original
+  if (this.isEditing && this.editingClassId) {
+    this.classes = this.classes.filter(c => c.id !== this.editingClassId);
+  }
+
+  this.classes.unshift(classData);
+  this.saveClasses();
+  this.renderClasses();
+  this.resetForm();
+  this.showStorageInfo();
+  
+  this.isEditing = false;
+  this.editingClassId = null;
+  this.hideCancelButton();
+  
+  this.showNotification("Clase guardada exitosamente", "success");
+  switchTab("view");
+}
 
   getClassesByCourse(courseId) {
     console.log("Buscando clases para courseId:", courseId);
@@ -1041,7 +1046,7 @@ class EnglishClassPlanner {
       });
     }, 500);
 
-    this.deleteClassSilent(id);
+    // this.deleteClassSilent(id);
     this.showNotification("Clase cargada para edición", "info");
   }
 
@@ -2696,6 +2701,8 @@ function updateCourseFilterOptions() {
   select.innerHTML = options;
   select.value = currentValue;
 }
+
+
 
 // Event listeners for translation
 document.addEventListener("DOMContentLoaded", () => {
