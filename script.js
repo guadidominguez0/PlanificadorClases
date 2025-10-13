@@ -899,11 +899,12 @@ class EnglishClassPlanner {
                     <div class="activity-type-row">
                         <select class="activity-type-select">
                             <option value="activity">Activity</option>
-                            <option value="game">Game</option>
-                            <option value="vocabulary">Vocabulary</option>
-                            <option value="explanation">Explanation</option>
-                            <option value="review">Review</option>
                             <option value="exam">Exam</option>
+                            <option value="explanation">Explanation</option>
+                            <option value="game">Game</option>
+                            <option value="oral">Oral Work</option>
+                            <option value="review">Review</option>
+                            <option value="vocabulary">Vocabulary</option>
                         </select>
                     </div>
                     <div class="activity-text-input-container"></div>
