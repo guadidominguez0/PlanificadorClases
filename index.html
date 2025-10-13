@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>English Class Planner</title>
+    <title>Planificador de Clases</title>
     <link
       href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
@@ -20,48 +20,82 @@
       <header class="header-with-nav">
         <div class="header-content">
           <div class="logo-section">
-            <h1>English Class Planner</h1>
+            <h1>Planificador de Clases</h1>
           </div>
 
           <!-- Tab Navigation -->
           <nav class="tab-navigation-header">
             <button
               class="tab-button active"
+              onclick="switchTab('courses')"
+              data-tab="courses"
+            >
+              Cursos
+            </button>
+            <button
+              class="tab-button"
               onclick="switchTab('create')"
               data-tab="create"
             >
-              ➕ Crear Clase
+              Crear Clase
             </button>
             <button
               class="tab-button"
               onclick="switchTab('view')"
               data-tab="view"
             >
-              📚 Ver Clases
+              Ver Clases
             </button>
             <button
               class="tab-button"
               onclick="switchTab('settings')"
               data-tab="settings"
             >
-              ⚙️ Configuración
+              Configuración
             </button>
             <button
               class="tab-button"
               onclick="switchTab('translate')"
               data-tab="translate"
             >
-              🌐 Traducción
+              Traducción
             </button>
           </nav>
         </div>
       </header>
 
-      <!-- Create Class Tab -->
-      <div id="createTab" class="tab-content active">
+      <!-- Courses Tab -->
+      <div id="coursesTab" class="tab-content active">
         <div class="card">
-          <h2>📝 Nueva Clase</h2>
+          <div class="courses-header">
+            <h2>Mis Cursos</h2>
+            <button 
+              class="btn" 
+              onclick="createNewCourse()"
+            >
+              + Nuevo Curso
+            </button>
+          </div>
+          <div id="coursesList" class="courses-grid">
+            <div class="empty-state">
+              <p>No tienes cursos creados aún.<br>¡Crea tu primer curso!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create Class Tab -->
+      <div id="createTab" class="tab-content">
+        <div class="card">
+          <h2>Nueva Clase</h2>
           <form id="classForm">
+            <div class="form-group">
+              <label for="courseName">Seleccionar Curso</label>
+              <select id="courseName" required>
+                <option value="">-- Selecciona un curso --</option>
+              </select>
+            </div>
+
             <div class="form-group">
               <label for="classDate">Fecha de la Clase</label>
               <input type="date" id="classDate" required />
@@ -82,10 +116,10 @@
             </div>
 
             <div class="form-group">
-              <label for="homework">Tarea (Homework)</label>
+              <label for="homework">Tarea</label>
               <textarea
                 id="homework"
-                placeholder="Ej: Make a question with each verb"
+                placeholder=""
               ></textarea>
 
               <!-- Homework Resources Section -->
@@ -94,7 +128,7 @@
                 class="add-resource-trigger homework-resources-trigger"
                 onclick="toggleHomeworkResources()"
               >
-                📎 Agregar recursos para la tarea
+                Agregar recursos
               </button>
               <div id="homeworkResourcesSection" class="resources-main-section">
                 <div class="resource-type-selector">
@@ -103,14 +137,14 @@
                     class="resource-type-btn active"
                     onclick="toggleHomeworkResourceType(this, 'file')"
                   >
-                    📎 Subir archivo
+                    Subir archivo
                   </button>
                   <button
                     type="button"
                     class="resource-type-btn"
                     onclick="toggleHomeworkResourceType(this, 'link')"
                   >
-                    🔗 Agregar enlace
+                    Agregar enlace
                   </button>
                 </div>
 
@@ -127,7 +161,7 @@
                       multiple
                       onchange="handleHomeworkFileSelect(this)"
                     />
-                    <div class="file-upload-text">📎 Subir archivos</div>
+                    <div class="file-upload-text">Subir archivos</div>
                     <div class="file-upload-hint">
                       Arrastra archivos aquí o haz clic para seleccionar<br />Soporta:
                       PDF, JPG, PNG, GIF (máx. 10MB)
@@ -155,7 +189,7 @@
                       class="add-resource-btn"
                       onclick="addHomeworkLinkResource()"
                     >
-                      📎 Agregar Enlace
+                      Agregar Enlace
                     </button>
                   </div>
                   <div
@@ -166,7 +200,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn">💾 Guardar Clase</button>
+            <button type="submit" class="btn">Guardar Clase</button>
           </form>
         </div>
       </div>
@@ -175,21 +209,28 @@
       <div id="viewTab" class="tab-content">
         <div class="card">
           <div class="classes-header">
-            <h2>📚 Clases</h2>
-            <button
-              id="expandAllBtn"
-              class="expand-all-btn"
-              onclick="toggleAllClasses()"
-            >
-              <span id="expandAllIcon">📖</span>
-              <span id="expandAllText">Expandir todas</span>
-            </button>
+            <h2>Clases</h2>
+            <div class="view-classes-controls">
+              <div class="course-selector">
+                <button class="btn btn-secondary btn-small" onclick="deselectCourse()">
+                  Mostrar todas
+                </button>
+              </div>
+              <button
+                id="expandAllBtn"
+                class="expand-all-btn"
+                onclick="toggleAllClasses()"
+              >
+                <span id="expandAllIcon"></span>
+                <span id="expandAllText">Expandir todas</span>
+              </button>
+            </div>
           </div>
           <input
             type="text"
             id="searchBox"
             class="search-box"
-            placeholder="🔍 Buscar en clases..."
+            placeholder="Buscar en clases..."
           />
           <div id="classesList" class="classes-grid">
             <div class="empty-state">
@@ -205,10 +246,10 @@
       <!-- Settings Tab -->
       <div id="settingsTab" class="tab-content">
         <div class="card">
-          <h2>⚙️ Configuración y Respaldos</h2>
+          <h2>Configuración y Respaldos</h2>
 
           <div class="settings-section">
-            <h3>📊 Información de Almacenamiento</h3>
+            <h3>Información de Almacenamiento</h3>
             <div id="storageInfo" class="storage-info">
               <div class="storage-stat">
                 <span class="stat-label">Clases guardadas:</span>
@@ -226,10 +267,10 @@
           </div>
 
           <div class="settings-section">
-            <h3>💾 Gestión de Datos</h3>
+            <h3>Gestión de Datos</h3>
             <div class="backup-controls">
               <button class="btn btn-secondary" onclick="planner.exportData()">
-                📥 Exportar Datos
+                Exportar Datos
               </button>
               <div class="import-section">
                 <input
@@ -243,27 +284,12 @@
                   class="btn btn-secondary"
                   onclick="document.getElementById('importFile').click()"
                 >
-                  📤 Importar Datos
+                  Importar Datos
                 </button>
               </div>
               <button class="btn btn-danger" onclick="planner.clearAllData()">
-                🗑️ Eliminar Todo
+                Eliminar Todo
               </button>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3>ℹ️ Acerca de</h3>
-            <div class="app-info">
-              <p><strong>English Class Planner v1.0</strong></p>
-              <p>
-                Planificador de clases de inglés con almacenamiento local
-                persistente.
-              </p>
-              <p>
-                Los datos se guardan automáticamente en tu navegador y
-                permanecen disponibles entre sesiones.
-              </p>
             </div>
           </div>
         </div>
@@ -272,7 +298,7 @@
       <!-- Translate Tab -->
       <div id="translateTab" class="tab-content">
         <div class="card">
-          <h2>🌐 Traductor</h2>
+          <h2>Traductor</h2>
 
           <div class="translate-container">
             <div class="translate-panel">
@@ -320,17 +346,17 @@
                     onclick="copyTranslation()"
                     title="Copiar traducción"
                   >
-                    📋 Copiar
+                    Copiar
                   </button>
                 </div>
               </div>
 
               <div class="translate-actions">
                 <button class="btn" onclick="translateText()">
-                  🌐 Traducir
+                  Traducir
                 </button>
                 <button class="btn btn-secondary" onclick="clearTranslation()">
-                  🗑️ Limpiar
+                  Limpiar
                 </button>
               </div>
             </div>
@@ -377,12 +403,12 @@
         </div>
         <div class="share-modal-body">
           <div id="shareSuccess" class="share-success">
-            ✅ Enlace copiado al portapapeles
+            Enlace copiado al portapapeles
           </div>
 
           <div class="share-options">
             <div class="share-option" onclick="shareAsJson()">
-              <div class="share-option-icon">📄</div>
+              <div class="share-option-icon"></div>
               <div class="share-option-content">
                 <div class="share-option-title">Descargar archivo</div>
                 <div class="share-option-description">
@@ -392,7 +418,7 @@
             </div>
 
             <div class="share-option" onclick="exportClassWithFiles()">
-              <div class="share-option-icon">📁</div>
+              <div class="share-option-icon"></div>
               <div class="share-option-content">
                 <div class="share-option-title">Exportar con archivos</div>
                 <div class="share-option-description">
@@ -402,7 +428,7 @@
             </div>
 
             <div class="share-option" onclick="shareAsText()">
-              <div class="share-option-icon">📝</div>
+              <div class="share-option-icon"></div>
               <div class="share-option-content">
                 <div class="share-option-title">Copiar como texto</div>
                 <div class="share-option-description">

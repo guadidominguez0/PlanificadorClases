@@ -1962,3 +1962,134 @@ html {
         pointer-events: auto;
     }
 }
+
+/* Courses Styles */
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.courses-header h2 {
+    margin: 0;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.course-item {
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.course-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+    transform: translateY(-4px);
+}
+
+.course-item.active {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+}
+
+.course-header {
+    padding: 1.5rem;
+    border-left: 4px solid #3b82f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.course-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.course-count {
+    font-size: 0.85rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+}
+
+.course-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    background: #f8fafc;
+    flex-wrap: wrap;
+}
+
+.course-actions .btn {
+    flex: 1;
+    min-width: 80px;
+}
+
+.course-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+#courseFilter {
+    flex: 1;
+    max-width: 300px;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+#courseFilter:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .courses-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .courses-header .btn {
+        width: 100%;
+    }
+
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .course-selector {
+        flex-direction: column;
+    }
+
+    #courseFilter {
+        max-width: none;
+    }
+
+    .course-actions {
+        flex-direction: column;
+    }
+
+    .course-actions .btn {
+        min-width: auto;
+    }
+}
