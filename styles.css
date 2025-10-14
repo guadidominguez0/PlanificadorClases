@@ -97,16 +97,16 @@ body {
         text-align: center;
         gap: 1.5rem;
     }
-    
+
     .logo-section h1 {
         font-size: 2rem;
     }
-    
+
     .tab-navigation-header {
         width: 100%;
         justify-content: center;
     }
-    
+
     .tab-navigation-header .tab-button {
         flex: 1;
         padding: 0.75rem 1rem;
@@ -122,12 +122,12 @@ body {
     .logo-section {
         display: none;
     }
-    
+
     .tab-navigation-header {
         flex-direction: column;
         gap: 0.25rem;
     }
-    
+
     .tab-navigation-header .tab-button {
         flex: none;
     }
@@ -175,7 +175,9 @@ label {
     font-size: 0.9rem;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #d1d5db;
@@ -186,7 +188,9 @@ input, textarea, select {
     transition: all 0.2s ease;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -284,6 +288,7 @@ textarea {
         opacity: 0;
         transform: translateY(24px) scale(0.96);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -294,8 +299,10 @@ textarea {
     position: relative;
     margin-bottom: 1.25rem;
     padding-top: 0.75rem;
-    padding-left: 3rem; /* Space for drag handle */
-    padding-right: 3rem; /* Space for remove button */
+    padding-left: 3rem;
+    /* Space for drag handle */
+    padding-right: 3rem;
+    /* Space for remove button */
 }
 
 .activity-drag-handle {
@@ -335,7 +342,8 @@ textarea {
 .activity-type-select {
     flex: 1;
     max-width: none;
-    padding: 0.875rem 3rem 0.875rem 1rem; /* Right padding for dropdown arrow */
+    padding: 0.875rem 3rem 0.875rem 1rem;
+    /* Right padding for dropdown arrow */
     border: none;
     border-radius: 12px;
     font-size: 1rem;
@@ -371,7 +379,8 @@ textarea {
     resize: vertical;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     line-height: 1.5;
-    margin-top: 0.5rem; /* Separation from select */
+    margin-top: 0.5rem;
+    /* Separation from select */
 }
 
 .activity-text-input:focus {
@@ -400,7 +409,8 @@ textarea {
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: absolute;
-    top: 0.75rem; /* Aligned with select */
+    top: 0.75rem;
+    /* Aligned with select */
     right: 0;
     box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
     z-index: 10;
@@ -644,7 +654,8 @@ textarea {
     gap: 0.5rem;
 }
 
-.file-preview-btn, .file-remove-btn {
+.file-preview-btn,
+.file-remove-btn {
     background: none;
     border: none;
     cursor: pointer;
@@ -830,6 +841,7 @@ textarea {
 
 .class-item.compressed {
     padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .class-header {
@@ -1024,7 +1036,7 @@ textarea {
     border-left: 3px solid #f59e0b;
 }
 
-.homework-section ol, 
+.homework-section ol,
 .homework-section ul {
     padding-left: 2rem;
 }
@@ -1071,7 +1083,7 @@ textarea {
     left: 0;
     width: 100%;
     height: 100%;
-    background: white ;
+    background: white;
     /*background: rgba(0, 0, 0, 0.5);*/
     z-index: 1000;
     padding: 30px;
@@ -1097,7 +1109,7 @@ textarea {
     max-width: 95vw;
     max-height: 95vh;
     width: 100%;
-    height: 100%; 
+    height: 100%;
 }
 
 .modal-header {
@@ -1172,13 +1184,14 @@ textarea {
 }
 
 @keyframes slideIn {
-    from { 
-        opacity: 0; 
-        transform: translateX(100%); 
+    from {
+        opacity: 0;
+        transform: translateX(100%);
     }
-    to { 
-        opacity: 1; 
-        transform: translateX(0); 
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 
@@ -1282,7 +1295,7 @@ textarea {
     .container {
         padding: 1rem;
     }
-    
+
     h1 {
         font-size: 2rem;
     }
@@ -1299,20 +1312,21 @@ textarea {
     .activity-header {
         padding-left: 1rem;
         padding-right: 1rem;
-        padding-top: 3rem; /* More top padding on mobile */
+        padding-top: 3rem;
+        /* More top padding on mobile */
     }
-    
+
     .activity-type-row {
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
     }
-    
+
     .remove-activity {
         top: 0.5rem;
         right: 0.5rem;
     }
-    
+
     .activity-drag-handle {
         top: 0.5rem;
         left: 0.5rem;
@@ -1423,7 +1437,7 @@ textarea {
         padding: 12px;
     }
 
-    .modal-content btn{
+    .modal-content btn {
         width: 100%;
     }
 
@@ -1432,14 +1446,14 @@ textarea {
         left: 1rem;
         max-width: none;
     }
-    
+
     .class-actions {
         display: flex;
         justify-content: space-evenly;
         flex-wrap: wrap;
     }
 
-    .class-item .btn{
+    .class-item .btn {
         display: flex;
         justify-content: space-evenly;
         flex-wrap: wrap;
@@ -1460,6 +1474,7 @@ textarea {
 
 /* Print styles */
 @media print {
+
     .modal-header,
     .class-actions,
     .class-header-actions,
@@ -1470,7 +1485,7 @@ textarea {
         display: none !important;
         flex-wrap: wrap;
     }
-    
+
     .modal-content {
         box-shadow: none;
         border: none;
@@ -1479,7 +1494,7 @@ textarea {
         background: white;
         padding: 12px;
     }
-    
+
     .activity-item,
     .class-item {
         break-inside: avoid;
@@ -1942,18 +1957,18 @@ html {
     .translate-content {
         grid-template-columns: 1fr;
     }
-    
+
     .translate-header {
         flex-wrap: wrap;
     }
-    
+
     .swap-languages-btn {
         order: 3;
         width: 100%;
         border-radius: 8px;
         height: 36px;
     }
-    
+
     .copy-translation-btn {
         position: static;
         width: 100%;
