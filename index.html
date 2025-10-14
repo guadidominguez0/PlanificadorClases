@@ -22,14 +22,9 @@
 
         <!-- Tab Navigation -->
         <nav class="tab-navigation-header">
-          <button class="tab-button active" onclick="switchTab('courses'), renderCoursesList()" data-tab="courses">
+          <button class="tab-button active" onclick="switchTab('courses')" data-tab="courses">
+            <!-- <button class="tab-button active" onclick="switchTab('courses'), renderCoursesList()" data-tab="courses"> -->
             Cursos
-          </button>
-          <button class="tab-button" onclick="switchTab('create'), updateCourseSelectOptions()" data-tab="create">
-            Crear Clase
-          </button>
-          <button class="tab-button" onclick="switchTab('view')" data-tab="view">
-            Ver Clases
           </button>
           <button class="tab-button" onclick="switchTab('settings')" data-tab="settings">
             Configuración
@@ -44,29 +39,61 @@
     <!-- Courses Tab -->
     <div id="coursesTab" class="tab-content active">
       <div class="card">
-        <div class="courses-header">
-          <h2>Mis Cursos</h2>
-          <button class="btn" onclick="createNewCourse()">
-            + Nuevo Curso
-          </button>
+        <!-- Vista de Lista de Cursos -->
+        <div id="coursesListView">
+          <div class="courses-header">
+            <h2>Mis Cursos</h2>
+            <button class="btn" onclick="createNewCourse()">
+              + Nuevo Curso
+            </button>
+          </div>
+          <div id="coursesList" class="courses-grid">
+            <div class="empty-state">
+              <p>No tienes cursos creados aún.<br>¡Crea tu primer curso!</p>
+            </div>
+          </div>
         </div>
-        <div id="coursesList" class="courses-grid">
-          <div class="empty-state">
-            <p>No tienes cursos creados aún.<br>¡Crea tu primer curso!</p>
+
+        <!-- Vista de Clases del Curso -->
+        <div id="courseClassesView" style="display: none;">
+          <div class="classes-header">
+            <h2 id="currentCourseName">Clases del Curso</h2>
+            <div class="view-classes-controls">
+              <button class="btn btn-secondary btn-small" onclick="backToCourses()">
+                ← Volver a Cursos
+              </button>
+              <button class="btn btn-small" onclick="createClassInCurrentCourse()">
+                + Nueva Clase
+              </button>
+              <!-- <button id="expandAllBtn" class="expand-all-btn" onclick="toggleAllClasses()">
+                <span id="expandAllIcon">▼</span>
+                <span id="expandAllText">Expandir todas</span>
+              </button> -->
+            </div>
+          </div>
+          <div id="classesList" class="classes-list">
+            <div class="empty-state">
+              <p>No hay clases programadas para este curso.<br>¡Crea tu primera clase!</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Create Class Tab -->
+    <!-- Create Class Tab (oculto, solo se usa como modal/formulario) -->
     <div id="createTab" class="tab-content">
       <div class="card">
-        <h2>Nueva Clase</h2>
+        <div class="classes-header">
+          <h2>Nueva Clase</h2>
+          <button class="btn btn-secondary btn-small" onclick="cancelCreateClass()">
+            ← Volver
+          </button>
+        </div>
         <form id="classForm">
           <div class="form-group">
-            <label for="courseName">Seleccionar Curso</label>
-            <select id="courseName" required>
-              <option value="">-- Selecciona un curso --</option>
+            <label for="courseName">Curso</label>
+            <select id="courseName" required disabled>
+              <option value="">-- Curso seleccionado --</option>
             </select>
           </div>
 
@@ -142,26 +169,20 @@
     <div id="viewTab" class="tab-content">
       <div class="card">
         <div class="classes-header">
-          <h2>Clases</h2>
+          <h2>Clases del Curso</h2>
           <div class="view-classes-controls">
-            <div class="course-selector">
-              <button class="btn btn-secondary btn-small" onclick="deselectCourse()">
-                Mostrar todas
-              </button>
-            </div>
+            <button class="btn btn-secondary btn-small" onclick="backToCourses()">
+              ← Volver a Cursos
+            </button>
             <button id="expandAllBtn" class="expand-all-btn" onclick="toggleAllClasses()">
               <span id="expandAllIcon"></span>
               <span id="expandAllText">Expandir todas</span>
             </button>
           </div>
         </div>
-        <input type="text" id="searchBox" class="search-box" placeholder="Buscar en clases..." />
-        <div id="classesList" class="classes-grid">
+        <div id="classesList" class="classes-list">
           <div class="empty-state">
-            <p>
-              No tienes clases planificadas aún.<br />¡Crea tu primera clase
-              de inglés!
-            </p>
+            <p>No hay clases programadas para este curso.<br>¡Crea tu primera clase!</p>
           </div>
         </div>
       </div>
@@ -261,92 +282,91 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Class Detail Modal -->
-  <div id="classDetailModal" class="modal class-detail-modal">
-    <div class="modal-content class-detail-content">
-      <div class="modal-header">
-        <h3 class="modal-title" id="classDetailTitle">
-          Detalles de la Clase
-        </h3>
-        <button class="modal-close" onclick="closeClassDetailModal()">
-          ×
-        </button>
-      </div>
-      <div class="modal-body" id="classDetailBody">
-        <!-- Class detail content will be inserted here -->
-      </div>
-    </div>
-  </div>
-
-  <!-- File Preview Modal -->
-  <div id="fileModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modalTitle">Vista previa</h3>
-        <button class="modal-close" onclick="closeModal()">×</button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- File preview content will be inserted here -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Share Class Modal -->
-  <div id="shareModal" class="share-modal">
-    <div class="share-modal-content">
-      <div class="share-modal-header">
-        <h3 class="share-modal-title">Compartir Clase</h3>
-      </div>
-      <div class="share-modal-body">
-        <div id="shareSuccess" class="share-success">
-          Enlace copiado al portapapeles
-        </div>
-
-        <div class="share-options">
-          <div class="share-option" onclick="shareAsJson()">
-            <div class="share-option-icon"></div>
-            <div class="share-option-content">
-              <div class="share-option-title">Descargar archivo</div>
-              <div class="share-option-description">
-                Guardar la clase como archivo JSON
-              </div>
-            </div>
-          </div>
-
-          <div class="share-option" onclick="exportClassWithFiles()">
-            <div class="share-option-icon"></div>
-            <div class="share-option-content">
-              <div class="share-option-title">Exportar con archivos</div>
-              <div class="share-option-description">
-                Descargar archivo HTML con todos los archivos incluidos
-              </div>
-            </div>
-          </div>
-
-          <div class="share-option" onclick="shareAsText()">
-            <div class="share-option-icon"></div>
-            <div class="share-option-content">
-              <div class="share-option-title">Copiar como texto</div>
-              <div class="share-option-description">
-                Copiar el contenido de la clase como texto plano
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="share-actions">
-          <button class="btn btn-secondary" onclick="closeShareModal()">
-            Cancelar
+    <!-- Class Detail Modal -->
+    <div id="classDetailModal" class="modal class-detail-modal">
+      <div class="modal-content class-detail-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="classDetailTitle">
+            Detalles de la Clase
+          </h3>
+          <button class="modal-close" onclick="closeClassDetailModal()">
+            ×
           </button>
         </div>
+        <div class="modal-body" id="classDetailBody">
+          <!-- Class detail content will be inserted here -->
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+    <!-- File Preview Modal -->
+    <div id="fileModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Vista previa</h3>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- File preview content will be inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Class Modal -->
+    <div id="shareModal" class="share-modal">
+      <div class="share-modal-content">
+        <div class="share-modal-header">
+          <h3 class="share-modal-title">Compartir Clase</h3>
+        </div>
+        <div class="share-modal-body">
+          <div id="shareSuccess" class="share-success">
+            Enlace copiado al portapapeles
+          </div>
+
+          <div class="share-options">
+            <div class="share-option" onclick="shareAsJson()">
+              <div class="share-option-icon"></div>
+              <div class="share-option-content">
+                <div class="share-option-title">Descargar archivo</div>
+                <div class="share-option-description">
+                  Guardar la clase como archivo JSON
+                </div>
+              </div>
+            </div>
+
+            <div class="share-option" onclick="exportClassWithFiles()">
+              <div class="share-option-icon"></div>
+              <div class="share-option-content">
+                <div class="share-option-title">Exportar con archivos</div>
+                <div class="share-option-description">
+                  Descargar archivo HTML con todos los archivos incluidos
+                </div>
+              </div>
+            </div>
+
+            <div class="share-option" onclick="shareAsText()">
+              <div class="share-option-icon"></div>
+              <div class="share-option-content">
+                <div class="share-option-title">Copiar como texto</div>
+                <div class="share-option-description">
+                  Copiar el contenido de la clase como texto plano
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-actions">
+            <button class="btn btn-secondary" onclick="closeShareModal()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 </body>
 
 </html>
