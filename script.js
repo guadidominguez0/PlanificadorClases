@@ -645,7 +645,6 @@ class EnglishClassPlanner {
           activity.links && activity.links.length > 0
             ? `
                 <div class="links-section">
-                    <div class="files-title">Enlaces</div>
                     <div class="links-grid">
                         ${activity.links
                           .map(
@@ -1435,7 +1434,6 @@ class EnglishClassPlanner {
                                   activity.links && activity.links.length > 0
                                     ? `
                                         <div class="resources-section">
-                                            <div class="resources-title">Enlaces</div>
                                             <div class="links-grid">
                                                 ${activity.links
                                                   .map(
@@ -1640,7 +1638,7 @@ class EnglishClassPlanner {
           notification.remove();
         }
       }, 400);
-    }, 3500);
+    }, 1500);
   }
 
   // Rich text editor methods
@@ -3064,19 +3062,19 @@ function renderCoursesList() {
                   course.id
                 }')" class="btn btn-secondary btn-small">
                     <span class="icon icon-plus"></span>
-                    <span>Nueva Clase</span>
+                    <span class="btn-text">Nueva Clase</span>
                 </button>
                 <button onclick="editCourseDialog('${
                   course.id
                 }')" class="btn btn-secondary btn-small">
                     <span class="icon icon-edit"></span>
-                    <span>Editar</span>
+                    <span class="btn-text">Editar</span>
                 </button>
                 <button onclick="planner.deleteCourse('${
                   course.id
                 }')" class="btn btn-danger btn-small">
                     <span class="icon icon-delete"></span>
-                    <span>Eliminar</span>
+                    <span class="btn-text">Eliminar</span>
                 </button>
             </div>
         </div>
