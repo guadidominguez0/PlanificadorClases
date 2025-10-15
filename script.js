@@ -629,101 +629,161 @@ class EnglishClassPlanner {
     title.textContent = `Clase del ${dateInfo.full}`;
 
     const activitiesHtml = classData.activities
-      .map((activity) => {
+      .map((activity, index) => {
         const filesHtml =
           activity.files && activity.files.length > 0
-            ? `<div class="activity-files">${activity.files
-                .map((file) => this.createFileDisplay(file))
-                .join("")}</div>`
+            ? `
+                <div class="files-section">
+                    <div class="files-title">Archivos</div>
+                    <div class="files-grid">
+                        ${activity.files
+                          .map((file) => this.createFileDisplay(file))
+                          .join("")}
+                    </div>
+                </div>`
             : "";
 
         const linksHtml =
           activity.links && activity.links.length > 0
-            ? `<div class="activity-files">${activity.links
-                .map(
-                  (link) =>
-                    `<a href="${link.url}" target="_blank" class="file-display-item"> ${link.name}</a>`
-                )
-                .join("")}</div>`
+            ? `
+                <div class="links-section">
+                    <div class="files-title">Enlaces</div>
+                    <div class="links-grid">
+                        ${activity.links
+                          .map(
+                            (link) => `
+                            <a href="${
+                              link.url
+                            }" target="_blank" class="link-item">
+                                <span class="link-icon"></span>
+                                <span class="link-text">
+                                    <span class="link-name">${link.name}</span>
+                                    <span class="link-url">${this.getDomainFromUrl(
+                                      link.url
+                                    )}</span>
+                                </span>
+                            </a>`
+                          )
+                          .join("")}
+                    </div>
+                </div>`
             : "";
 
         return `
-                <div class="activity-display">
-                    <div class="activity-type-badge type-${activity.type}">${
-          activity.type
-        }</div>
-                    <div class="activity-content">
-                        <div class="activity-text">${
-                          activity.textHtml || activity.text
-                        }</div>
-                        ${filesHtml}
-                        ${linksHtml}
-                    </div>
+            <div class="activity-card">
+                <div class="activity-header">
+                    <span class="activity-number">${index + 1}.</span>
+                    <span class="activity-type-badge type-${
+                      activity.type
+                    }">${this.capitalizeFirstLetter(activity.type)}</span>
                 </div>
-            `;
-      })
-      .join("");
-
-    const homeworkHtml = classData.homework
-      ? `
-                <div class="homework-section">
-                    <div class="homework-title">
-                        Homework:
-                    </div>
-                    <div class="homework-content">${
-                      classData.homeworkHtml || classData.homework
+                <div class="activity-content">
+                    <div class="activity-text">${
+                      activity.textHtml || activity.text
                     }</div>
-                    ${
-                      classData.homeworkFiles &&
-                      classData.homeworkFiles.length > 0
-                        ? `<div class="activity-files">${classData.homeworkFiles
-                            .map((file) => this.createFileDisplay(file))
-                            .join("")}</div>`
-                        : ""
-                    }
-                    ${
-                      classData.homeworkLinks &&
-                      classData.homeworkLinks.length > 0
-                        ? `<div class="activity-files">${classData.homeworkLinks
-                            .map(
-                              (link) =>
-                                `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-                            )
-                            .join("")}</div>`
-                        : ""
-                    }
-                </div>
-            `
-      : "";
-
-    body.innerHTML = `
-            <div class="class-detail-content-full">
-                <div class="class-date-english">${englishDate}</div>
-                <div class="activities-list">
-                    ${activitiesHtml}
-                </div>
-                ${homeworkHtml}
-                <div class="class-actions">
-                    <button onclick="event.stopPropagation(); planner.editClass('${classData.id}')" class="btn btn-secondary btn-small">
-                        Editar
-                    </button>
-                    <button onclick="event.stopPropagation(); planner.shareClass('${classData.id}')" class="btn btn-small" style="background: #22c55e;">
-                        Compartir
-                    </button>
-                    <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id}')" class="btn btn-danger btn-small">
-                        Eliminar
-                    </button>
+                    ${filesHtml}
+                    ${linksHtml}
                 </div>
             </div>
         `;
+      })
+      .join("");
+
+    const homeworkFilesHtml =
+      classData.homeworkFiles && classData.homeworkFiles.length > 0
+        ? `
+          <div class="files-section">
+              <div class="files-title">Archivos de tarea</div>
+              <div class="files-grid">
+                  ${classData.homeworkFiles
+                    .map((file) => this.createFileDisplay(file))
+                    .join("")}
+              </div>
+          </div>`
+        : "";
+
+    const homeworkLinksHtml =
+      classData.homeworkLinks && classData.homeworkLinks.length > 0
+        ? `
+          <div class="links-section">
+              <div class="files-title">Enlaces de tarea</div>
+              <div class="links-grid">
+                  ${classData.homeworkLinks
+                    .map(
+                      (link) => `
+                      <a href="${link.url}" target="_blank" class="link-item">
+                          <span class="link-icon"></span>
+                          <span class="link-text">
+                              <span class="link-name">${link.name}</span>
+                              <span class="link-url">${this.getDomainFromUrl(
+                                link.url
+                              )}</span>
+                          </span>
+                      </a>`
+                    )
+                    .join("")}
+              </div>
+          </div>`
+        : "";
+
+    const homeworkHtml = classData.homework
+      ? `
+          <div class="homework-card">
+              <div class="homework-header">
+                  <span class="homework-icon"></span>
+                  <h3 class="homework-title">Tarea</h3>
+              </div>
+              <div class="homework-content">
+                  ${classData.homeworkHtml || classData.homework}
+              </div>
+              ${homeworkFilesHtml}
+              ${homeworkLinksHtml}
+          </div>`
+      : "";
+
+    body.innerHTML = `
+        <div class="class-detail-view">
+            <div class="class-header-info">
+                <div class="class-date-display">
+                    <span class="date-english">${englishDate}</span>
+                    <span class="date-local">${dateInfo.full}</span>
+                </div>
+            </div>
+            
+            <div class="activities-container">
+                <h3 class="section-title">Actividades</h3>
+                <div class="activities-grid">
+                    ${activitiesHtml}
+                </div>
+            </div>
+            
+            ${homeworkHtml}
+            
+            <div class="class-actions-footer">
+                <button onclick="event.stopPropagation(); planner.editClass('${classData.id}')" class="btn-action btn-edit">
+                    <span class="btn-icon edit-icon"></span>
+                    <span class="btn-text">Editar</span>
+                </button>
+                <button onclick="event.stopPropagation(); planner.shareClass('${classData.id}')" class="btn-action btn-share">
+                    <span class="btn-icon share-icon"></span>
+                    <span class="btn-text">Compartir</span>
+                </button>
+                <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id}')" class="btn-action btn-delete">
+                    <span class="btn-icon delete-icon"></span>
+                    <span class="btn-text">Eliminar</span>
+                </button>
+            </div>
+        </div>
+    `;
 
     modal.classList.add("active");
+    document.body.style.overflow = "hidden";
   }
 
   createFileUploadArea() {
     return `
             <button type="button" class="add-resource-trigger" onclick="toggleResourceSection(this)">
-                Agregar recursos para esta actividad
+                Agregar recursos
             </button>
             <div class="resources-main-section">
                 <div class="resource-type-selector">
@@ -1210,12 +1270,17 @@ class EnglishClassPlanner {
     document.getElementById("homeworkLinkResourcesList").innerHTML = "";
     this.setTodayAsDefault();
 
+    // Limpiar estado de edición
     this.isEditing = false;
     this.editingClassId = null;
     this.hideCancelButton();
 
+    // Resetear el editor de homework
     setTimeout(() => {
       this.initializeHomeworkEditor();
+      if (this.homeworkQuillEditor) {
+        this.homeworkQuillEditor.setText("");
+      }
     }, 200);
   }
 
@@ -1278,7 +1343,9 @@ class EnglishClassPlanner {
     if (classesForDisplay.length === 0) {
       container.innerHTML = `
             <div class="empty-state">
-                <p>No hay clases en este curso.<br>¡Crea tu primera clase!</p>
+                <div class="empty-icon"></div>
+                <p>No hay clases en este curso.</p>
+                <p class="empty-subtitle">¡Crea tu primera clase!</p>
             </div>
         `;
       return;
@@ -1304,124 +1371,184 @@ class EnglishClassPlanner {
           (classData.homeworkFiles?.length || 0) +
           (classData.homeworkLinks?.length || 0);
 
-        const summaryText = `${activitiesCount} actividad${
-          activitiesCount !== 1 ? "es" : ""
-        } • Tipos: ${activityTypes.join(", ")}${
+        const summaryItems = [
+          `${activitiesCount} actividad${activitiesCount !== 1 ? "es" : ""}`,
+          activityTypes.length > 0
+            ? `Tipos: ${activityTypes.join(", ")}`
+            : null,
           totalResources > 0
-            ? ` • ${totalResources} recurso${totalResources !== 1 ? "s" : ""}`
-            : ""
-        }${hasHomework ? " • Con tarea" : ""}`;
+            ? `${totalResources} recurso${totalResources !== 1 ? "s" : ""}`
+            : null,
+          hasHomework ? "Con tarea" : null,
+        ].filter((item) => item !== null);
+
+        const summaryText = summaryItems.join(" • ");
 
         return `
-                <div class="class-item compressed fade-in" data-class-id="${
-                  classData.id
-                }" onclick="toggleClassExpansion('${classData.id}', event)">
-                    <div class="class-header">
-                        <div class="class-date-title">
-                            <span class="class-weekday">${
-                              dateInfo.weekday
-                            }</span>
-                            ${dateInfo.dayNumber}
+                <div class="class-card ${
+                  classesForDisplay.length > 1 ? "fade-in" : ""
+                }" data-class-id="${classData.id}">
+                    <div class="class-card-header" onclick="toggleClassExpansion('${
+                      classData.id
+                    }', event)">
+                        <div class="class-date-info">
+                            <div class="class-date-badge">
+                                <span class="class-weekday">${
+                                  dateInfo.weekday
+                                }</span>
+                                <span class="class-date">${
+                                  dateInfo.dayNumber
+                                }</span>
+                            </div>
+                            <div class="class-meta">
+                                <span class="class-summary">${summaryText}</span>
+                            </div>
                         </div>
                         <div class="class-header-actions">
                             <button onclick="event.stopPropagation(); planner.openClassDetailModal('${
                               classData.id
-                            }')" class="view-full-btn" title="Ver en pantalla completa">
-                                Ver completa
+                            }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
+                                <span class="icon-fullscreen"></span>
+                            </button>
+                            <button class="btn-icon expand-toggle-btn" title="Expandir">
+                                <span class="icon-expand"></span>
                             </button>
                         </div>
                     </div>
                     
-                    <div class="class-summary">
-                        ${summaryText}
-                    </div>
-                    
-                    <div class="activities-list" style="display: none;">
-                        ${classData.activities
-                          .map((activity) => {
-                            const filesHtml =
-                              activity.files && activity.files.length > 0
-                                ? `<div class="activity-files">${activity.files
-                                    .map((file) => this.createFileDisplay(file))
-                                    .join("")}</div>`
-                                : "";
+                    <div class="class-card-content" style="display: none;">
+                        <div class="activities-container">
+                            ${classData.activities
+                              .map((activity, index) => {
+                                const filesHtml =
+                                  activity.files && activity.files.length > 0
+                                    ? `
+                                        <div class="resources-section">
+                                            <div class="resources-title">Archivos</div>
+                                            <div class="files-grid">
+                                                ${activity.files
+                                                  .map((file) =>
+                                                    this.createFileDisplay(file)
+                                                  )
+                                                  .join("")}
+                                            </div>
+                                        </div>`
+                                    : "";
 
-                            const linksHtml =
-                              activity.links && activity.links.length > 0
-                                ? `<div class="activity-files">${activity.links
-                                    .map(
-                                      (link) =>
-                                        `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-                                    )
-                                    .join("")}</div>`
-                                : "";
+                                const linksHtml =
+                                  activity.links && activity.links.length > 0
+                                    ? `
+                                        <div class="resources-section">
+                                            <div class="resources-title">Enlaces</div>
+                                            <div class="links-grid">
+                                                ${activity.links
+                                                  .map(
+                                                    (link) => `
+                                                        <a href="${link.url}" target="_blank" class="link-item">
+                                                            <span class="link-icon"></span>
+                                                            <span class="link-text">
+                                                                <span class="link-name">${link.name}</span>
+                                                            </span>
+                                                        </a>`
+                                                  )
+                                                  .join("")}
+                                            </div>
+                                        </div>`
+                                    : "";
 
-                            return `
-                                <div class="activity-display">
-                                    <div class="activity-type-badge type-${
-                                      activity.type
-                                    }">${activity.type}</div>
-                                    <div class="activity-content">
-                                        <div class="activity-text">${
-                                          activity.textHtml || activity.text
-                                        }</div>
-                                        ${filesHtml}
-                                        ${linksHtml}
+                                return `
+                                    <div class="activity-item">
+                                        <div class="activity-header">
+                                            <span class="activity-number">${
+                                              index + 1
+                                            }.</span>
+                                            <span class="activity-type-badge type-${
+                                              activity.type
+                                            }">${this.capitalizeFirstLetter(
+                                  activity.type
+                                )}</span>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-text">${
+                                              activity.textHtml || activity.text
+                                            }</div>
+                                            ${filesHtml}
+                                            ${linksHtml}
+                                        </div>
                                     </div>
-                                </div>
-                            `;
-                          })
-                          .join("")}
-                    </div>
-                    
-                    ${
-                      classData.homework
-                        ? `
-                        <div class="homework-section" style="display: none;">
-                            <div class="homework-title">Homework:</div>
-                            <div class="homework-content">${
-                              classData.homeworkHtml || classData.homework
-                            }</div>
-                            ${
-                              classData.homeworkFiles &&
-                              classData.homeworkFiles.length > 0
-                                ? `<div class="activity-files">${classData.homeworkFiles
-                                    .map((file) => this.createFileDisplay(file))
-                                    .join("")}</div>`
-                                : ""
-                            }
-                            ${
-                              classData.homeworkLinks &&
-                              classData.homeworkLinks.length > 0
-                                ? `<div class="activity-files">${classData.homeworkLinks
-                                    .map(
-                                      (link) =>
-                                        `<a href="${link.url}" target="_blank" class="file-display-item">🔗 ${link.name}</a>`
-                                    )
-                                    .join("")}</div>`
-                                : ""
-                            }
+                                `;
+                              })
+                              .join("")}
                         </div>
-                    `
-                        : ""
-                    }
-                    
-                    <div class="class-actions" style="display: none;">
-                        <button onclick="event.stopPropagation(); planner.editClass('${
-                          classData.id
-                        }')" class="btn btn-secondary btn-small">
-                            Editar
-                        </button>
-                        <button onclick="event.stopPropagation(); planner.shareClass('${
-                          classData.id
-                        }')" class="btn btn-small" style="background: #22c55e;">
-                            Compartir
-                        </button>
-                        <button onclick="event.stopPropagation(); planner.deleteClass('${
-                          classData.id
-                        }')" class="btn btn-danger btn-small">
-                            Eliminar
-                        </button>
+                        
+                        ${
+                          classData.homework
+                            ? `
+                            <div class="homework-preview">
+                                <div class="homework-header">
+                                    <span class="homework-icon"></span>
+                                    <span class="homework-title">Tarea</span>
+                                </div>
+                                <div class="homework-content-preview">
+                                    ${this.truncateText(
+                                      classData.homeworkHtml
+                                        ? this.stripHtml(classData.homeworkHtml)
+                                        : classData.homework,
+                                      120
+                                    )}
+                                </div>
+                                ${
+                                  classData.homeworkFiles &&
+                                  classData.homeworkFiles.length > 0
+                                    ? `<div class="homework-resources">
+                                        <span class="resources-count">${
+                                          classData.homeworkFiles.length
+                                        } archivo${
+                                        classData.homeworkFiles.length !== 1
+                                          ? "s"
+                                          : ""
+                                      }</span>
+                                    </div>`
+                                    : ""
+                                }
+                                ${
+                                  classData.homeworkLinks &&
+                                  classData.homeworkLinks.length > 0
+                                    ? `<div class="homework-resources">
+                                        <span class="resources-count">${
+                                          classData.homeworkLinks.length
+                                        } enlace${
+                                        classData.homeworkLinks.length !== 1
+                                          ? "s"
+                                          : ""
+                                      }</span>
+                                    </div>`
+                                    : ""
+                                }
+                            </div>`
+                            : ""
+                        }
+                        
+                        <div class="class-card-actions">
+                            <button onclick="event.stopPropagation(); planner.editClass('${
+                              classData.id
+                            }')" class="btn-action btn-edit">
+                                <span class="btn-icon edit-icon"></span>
+                                <span class="btn-text">Editar</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); planner.shareClass('${
+                              classData.id
+                            }')" class="btn-action btn-share">
+                                <span class="btn-icon share-icon"></span>
+                                <span class="btn-text">Compartir</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); planner.deleteClass('${
+                              classData.id
+                            }')" class="btn-action btn-delete">
+                                <span class="btn-icon delete-icon"></span>
+                                <span class="btn-text">Eliminar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1484,19 +1611,21 @@ class EnglishClassPlanner {
         "¿Estás seguro de que deseas cancelar la edición? Los cambios no guardados se perderán."
       )
     ) {
-      // Restaurar la clase original
-      if (this.editingClassId) {
-        const originalClass = this.classes.find(
-          (c) => c.id === this.editingClassId
-        );
-        if (!originalClass) {
-          // Si no existe, significa que se borró al editar, no hacer nada
-        }
-      }
-
       this.resetForm();
       this.showNotification("Edición cancelada", "info");
-      switchTab("view");
+
+      // Navegar a la vista correcta
+      if (this.currentCourseId) {
+        switchTab("courses");
+        setTimeout(() => {
+          // Asegurar que se muestren las clases del curso
+          document.getElementById("coursesListView").style.display = "none";
+          document.getElementById("courseClassesView").style.display = "block";
+          this.renderClasses();
+        }, 100);
+      } else {
+        backToCourses();
+      }
     }
   }
 
@@ -1739,237 +1868,375 @@ class EnglishClassPlanner {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-                
-                body { 
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-                    line-height: 1.47;
-                    color: #1d1d1f;
-                    background: #e8f4f8;
-                    padding: 24px;
-                    -webkit-font-smoothing: antialiased;
-                }
-                
-                .container {
-                    max-width: 1400px;
-                    margin: 0 auto;
-                    background: #ffffff;
-                    border-radius: 16px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                    overflow: hidden;
-                }
-                
-                .header {
-                    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-                    padding: 40px 32px;
-                    text-align: center;
-                    border-bottom: 1px solid #e2e8f0;
-                }
-                
-                .header h1 {
-                    font-size: 34px;
-                    font-weight: 700;
-                    letter-spacing: -0.41px;
-                    color: #1e293b;
-                    margin-bottom: 8px;
-                }
-                
-                .date {
-                    font-size: 17px;
-                    font-weight: 400;
-                    color: #64748b;
-                    letter-spacing: -0.41px;
-                }
-                
-                .content {
-                    padding: 32px;
-                    background: #ffffff;
-                }
-                
-                .section-title {
-                    font-size: 28px;
-                    font-weight: 700;
-                    letter-spacing: -0.36px;
-                    color: #1e293b;
-                    margin-bottom: 24px;
-                }
-                
-                .activity { 
-                    background: #f8fafc;
-                    margin-bottom: 16px;
-                    padding: 20px;
-                    border-radius: 12px;
-                    border: 1px solid #e2e8f0;
-                }
-                
-                .activity:last-child {
-                    margin-bottom: 0;
-                }
-                
-                .activity-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 16px;
-                }
-                
-                .activity-number {
-                    font-size: 17px;
-                    font-weight: 600;
-                    color: #1e293b;
-                }
-                
-                .activity-type {
-                    background: #3b82f6;
-                    color: #ffffff;
-                    padding: 4px 8px;
-                    border-radius: 6px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.08px;
-                }
-                
-                .activity p {
-                    font-size: 17px;
-                    line-height: 1.47;
-                    color: #374151;
-                    margin-bottom: 16px;
-                }
-                
-                .activity p:last-child {
-                    margin-bottom: 0;
-                }
-                
-                .files-section {
-                    margin-top: 16px;
-                    padding-top: 16px;
-                    border-top: 1px solid #e2e8f0;
-                }
-                
-                .files-title {
-                    font-size: 15px;
-                    font-weight: 600;
-                    color: #64748b;
-                    margin-bottom: 12px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.08px;
-                }
-                
-                .file-link { 
-                    display: inline-block;
-                    margin: 0 8px 8px 0;
-                    padding: 8px 16px;
-                    background: #ffffff;
-                    color: #3b82f6;
-                    text-decoration: none;
-                    border-radius: 20px;
-                    font-size: 15px;
-                    font-weight: 500;
-                    transition: all 0.2s ease;
-                    border: 1px solid #e2e8f0;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                }
-                
-                .file-link:hover {
-                    background: #3b82f6;
-                    color: #ffffff;
-                    transform: scale(1.02);
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-                }
-                
-                .file-link:active {
-                    transform: scale(0.98);
-                }
-                
-                .homework { 
-                    background: #ffffff;
-                    padding: 24px;
-                    border-radius: 12px;
-                    margin-top: 32px;
-                    border: 1px solid #f59e0b;
-                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
-                }
-                
-                .homework h2 {
-                    font-size: 22px;
-                    font-weight: 700;
-                    color: #d97706;
-                    margin-bottom: 16px;
-                    letter-spacing: -0.26px;
-                }
-                
-                .homework p {
-                    font-size: 17px;
-                    line-height: 1.47;
-                    color: #374151;
-                    margin-bottom: 16px;
-                }
-                
-                .homework p:last-child {
-                    margin-bottom: 0;
-                }
-                
-                .homework .files-title {
-                    color: #d97706;
-                }
-                
-                .homework .file-link {
-                    color: #d97706;
-                    border-color: #fbbf24;
-                }
-                
-                .homework .file-link:hover {
-                    background: #f59e0b;
-                    color: #ffffff;
-                    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
-                }
-                
-                /* Responsive */
-                @media (max-width: 768px) {
-                    body {
-                        padding: 16px;
-                    }
-                    
-                    .container {
-                        border-radius: 12px;
-                    }
-                    
-                    .header {
-                        padding: 32px 20px;
-                    }
-                    
-                    .header h1 {
-                        font-size: 28px;
-                    }
-                    
-                    .content {
-                        padding: 20px;
-                    }
-                    
-                    .section-title {
-                        font-size: 22px;
-                    }
-                    
-                    .activity {
-                        padding: 16px;
-                    }
-                    
-                    .homework {
-                        padding: 20px;
-                        margin-top: 24px;
-                    }
-                    
-                    .file-link {
-                        display: block;
-                        text-align: center;
-                        margin: 0 0 8px 0;
-                    }
-                }
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+
+              body { 
+                  font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                  line-height: 1.5;
+                  color: #37352f;
+                  background: #ffffff;
+                  padding: 24px;
+                  -webkit-font-smoothing: antialiased;
+              }
+
+              .container {
+                  max-width: 1000px;
+                  margin: 0 auto;
+                  background: #ffffff;
+                  border-radius: 8px;
+                  border: 1px solid #e9e9e7;
+                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                  overflow: hidden;
+              }
+
+              .header {
+                  background: #ffffff;
+                  padding: 32px 24px;
+                  text-align: center;
+                  border-bottom: 1px solid #e9e9e7;
+              }
+
+              .header h1 {
+                  font-size: 28px;
+                  font-weight: 700;
+                  color: #37352f;
+                  margin-bottom: 8px;
+              }
+
+              .date {
+                  font-size: 16px;
+                  font-weight: 400;
+                  color: #787774;
+                  background: #f7f6f3;
+                  padding: 8px 16px;
+                  border-radius: 4px;
+                  display: inline-block;
+              }
+
+              .content {
+                  padding: 24px;
+                  background: #ffffff;
+              }
+
+              .section-title {
+                  font-size: 20px;
+                  font-weight: 600;
+                  color: #37352f;
+                  margin-bottom: 20px;
+                  padding-bottom: 12px;
+                  border-bottom: 1px solid #e9e9e7;
+              }
+
+              .activity { 
+                  background: #f7f6f3;
+                  margin-bottom: 16px;
+                  padding: 20px;
+                  border-radius: 6px;
+                  border: 1px solid #e9e9e7;
+                  transition: all 0.15s ease;
+              }
+
+              .activity:hover {
+                  border-color: #37352f;
+              }
+
+              .activity:last-child {
+                  margin-bottom: 0;
+              }
+
+              .activity-header {
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  margin-bottom: 16px;
+              }
+
+              .activity-number {
+                  font-size: 16px;
+                  font-weight: 600;
+                  color: #37352f;
+              }
+
+              .activity-type {
+                  background: #37352f;
+                  color: #ffffff;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+              }
+
+              .activity p {
+                  font-size: 16px;
+                  line-height: 1.5;
+                  color: #37352f;
+                  margin-bottom: 16px;
+              }
+
+              .activity p:last-child {
+                  margin-bottom: 0;
+              }
+
+              .files-section {
+                  margin-top: 16px;
+                  padding-top: 16px;
+                  border-top: 1px solid #e9e9e7;
+              }
+
+              .files-title {
+                  font-size: 14px;
+                  font-weight: 600;
+                  color: #787774;
+                  margin-bottom: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+              }
+
+              .file-link { 
+                  display: inline-flex;
+                  align-items: center;
+                  margin: 0 8px 8px 0;
+                  padding: 8px 12px;
+                  background: #ffffff;
+                  color: #37352f;
+                  text-decoration: none;
+                  border-radius: 4px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  transition: all 0.15s ease;
+                  border: 1px solid #e9e9e7;
+                  gap: 6px;
+              }
+
+              .file-link:hover {
+                  background: #37352f;
+                  color: #ffffff;
+                  border-color: #37352f;
+              }
+
+              .file-link:active {
+                  transform: scale(0.98);
+              }
+
+              /* Icono para archivos */
+              .file-link::before {
+                  content: "";
+                  width: 16px;
+                  height: 16px;
+                  background: currentColor;
+                  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E") no-repeat center;
+              }
+
+              .homework { 
+                  background: #fef9e7;
+                  padding: 20px;
+                  border-radius: 6px;
+                  margin-top: 24px;
+                  border: 1px solid #f39c12;
+                  border-left: 4px solid #f39c12;
+              }
+
+              .homework h2 {
+                  font-size: 18px;
+                  font-weight: 600;
+                  color: #8e6c0a;
+                  margin-bottom: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+              }
+
+              /* Icono para tarea */
+              .homework h2::before {
+                  content: "";
+                  width: 18px;
+                  height: 18px;
+                  background: currentColor;
+                  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E") no-repeat center;
+              }
+
+              .homework p {
+                  font-size: 16px;
+                  line-height: 1.5;
+                  color: #37352f;
+                  margin-bottom: 12px;
+              }
+
+              .homework p:last-child {
+                  margin-bottom: 0;
+              }
+
+              .homework .files-title {
+                  color: #8e6c0a;
+              }
+
+              .homework .file-link {
+                  color: #8e6c0a;
+                  border-color: #f39c12;
+              }
+
+              .homework .file-link:hover {
+                  background: #f39c12;
+                  color: #ffffff;
+                  border-color: #f39c12;
+              }
+
+              /* Tipos de actividad con colores Notion */
+              .type-game { background: #f39c12; }
+              .type-activity { background: #27ae60; }
+              .type-vocabulary { background: #9b59b6; }
+              .type-explanation { background: #3498db; }
+              .type-review { background: #1abc9c; }
+              .type-exam { background: #e74c3c; }
+              .type-oral { background: #e67e22; }
+
+              /* Responsive mejorado */
+              @media (max-width: 768px) {
+                  body {
+                      padding: 16px;
+                      background: #ffffff;
+                  }
+                  
+                  .container {
+                      border-radius: 6px;
+                      border: 1px solid #e9e9e7;
+                  }
+                  
+                  .header {
+                      padding: 24px 16px;
+                  }
+                  
+                  .header h1 {
+                      font-size: 24px;
+                  }
+                  
+                  .date {
+                      font-size: 14px;
+                      padding: 6px 12px;
+                  }
+                  
+                  .content {
+                      padding: 16px;
+                  }
+                  
+                  .section-title {
+                      font-size: 18px;
+                      margin-bottom: 16px;
+                  }
+                  
+                  .activity {
+                      padding: 16px;
+                      margin-bottom: 12px;
+                  }
+                  
+                  .activity-header {
+                      flex-direction: column;
+                      align-items: flex-start;
+                      gap: 8px;
+                      margin-bottom: 12px;
+                  }
+                  
+                  .homework {
+                      padding: 16px;
+                      margin-top: 20px;
+                  }
+                  
+                  .file-link {
+                      display: flex;
+                      width: 100%;
+                      text-align: left;
+                      margin: 0 0 8px 0;
+                      justify-content: flex-start;
+                  }
+                  
+                  .files-section {
+                      margin-top: 12px;
+                      padding-top: 12px;
+                  }
+              }
+
+              @media (max-width: 480px) {
+                  body {
+                      padding: 12px;
+                  }
+                  
+                  .header {
+                      padding: 20px 12px;
+                  }
+                  
+                  .header h1 {
+                      font-size: 20px;
+                  }
+                  
+                  .content {
+                      padding: 12px;
+                  }
+                  
+                  .activity {
+                      padding: 12px;
+                  }
+                  
+                  .activity p {
+                      font-size: 15px;
+                  }
+                  
+                  .homework {
+                      padding: 12px;
+                  }
+                  
+                  .homework h2 {
+                      font-size: 16px;
+                  }
+                  
+                  .homework p {
+                      font-size: 15px;
+                  }
+                  
+                  .file-link {
+                      font-size: 13px;
+                      padding: 6px 10px;
+                  }
+              }
+
+              /* Mejoras de impresión */
+              @media print {
+                  body {
+                      background: #ffffff;
+                      padding: 0;
+                  }
+                  
+                  .container {
+                      box-shadow: none;
+                      border: none;
+                      border-radius: 0;
+                  }
+                  
+                  .header {
+                      border-bottom: 2px solid #37352f;
+                  }
+                  
+                  .activity {
+                      break-inside: avoid;
+                      border: 1px solid #e9e9e7;
+                  }
+                  
+                  .file-link {
+                      border: 1px solid #e9e9e7;
+                      color: #37352f;
+                  }
+                  
+                  .file-link:hover {
+                      background: transparent;
+                      color: #37352f;
+                      border-color: #e9e9e7;
+                  }
+              }
             </style>
         </head>
         <body>
@@ -2047,6 +2314,23 @@ class EnglishClassPlanner {
     a.download = `english-class-${classData.date}.html`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // Añade estos métodos a la clase EnglishClassPlanner
+  capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  truncateText(text, maxLength) {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  }
+
+  stripHtml(html) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
   }
 }
 
@@ -2488,43 +2772,18 @@ function toggleClassExpansion(classId, event) {
     return;
   }
 
-  const classItem = document.querySelector(`[data-class-id="${classId}"]`);
-  const toggleBtn = classItem.querySelector(".expand-toggle-btn");
+  const classCard = document.querySelector(
+    `.class-card[data-class-id="${classId}"]`
+  );
+  const content = classCard.querySelector(".class-card-content");
+  const expandIcon = classCard.querySelector(".icon-expand");
 
-  // Como ya no hay botón visible, crear referencias simuladas
-  let toggleIcon = { textContent: "" };
-  let toggleText = { textContent: "" };
-
-  if (classItem.classList.contains("compressed")) {
-    classItem.classList.remove("compressed");
-
-    const hiddenElements = classItem.querySelectorAll(
-      ".activities-list, .homework-section, .class-actions"
-    );
-    hiddenElements.forEach((el) => {
-      el.style.display = "block";
-      el.style.opacity = "0";
-      el.style.transform = "translateY(-10px)";
-    });
-
-    setTimeout(() => {
-      hiddenElements.forEach((el, index) => {
-        setTimeout(() => {
-          el.style.transition = "all 0.3s ease";
-          el.style.opacity = "1";
-          el.style.transform = "translateY(0)";
-        }, index * 100);
-      });
-    }, 50);
+  if (classCard.classList.contains("expanded")) {
+    classCard.classList.remove("expanded");
+    content.style.display = "none";
   } else {
-    classItem.classList.add("compressed");
-
-    const hiddenElements = classItem.querySelectorAll(
-      ".activities-list, .homework-section, .class-actions"
-    );
-    hiddenElements.forEach((el) => {
-      el.style.display = "none";
-    });
+    classCard.classList.add("expanded");
+    content.style.display = "block";
   }
 }
 
@@ -2714,14 +2973,9 @@ function updateCharCount() {
 }
 
 function selectCourse(courseId) {
-  console.log("courseId recibido:", courseId);
+  if (!planner) return;
 
-  if (!planner) {
-    console.error("Planner no está inicializado");
-    return;
-  }
-
-  // Establecer el courseId PRIMERO
+  // Establecer el curso actual
   planner.currentCourseId = courseId;
 
   // Obtener el nombre del curso
@@ -2735,6 +2989,7 @@ function selectCourse(courseId) {
   document.getElementById("courseClassesView").style.display = "block";
   document.getElementById("currentCourseName").textContent = courseName;
 
+  // Renderizar las clases del curso
   planner.renderClasses();
 }
 
@@ -2747,15 +3002,18 @@ function deselectCourse() {
 }
 
 function backToCourses() {
-  planner.currentCourseId = null;
+  if (planner) {
+    planner.currentCourseId = null;
 
-  // Mostrar lista de cursos
-  document.getElementById("coursesListView").style.display = "block";
+    // Mostrar lista de cursos
+    document.getElementById("coursesListView").style.display = "block";
 
-  // Ocultar vista de clases
-  document.getElementById("courseClassesView").style.display = "none";
+    // Ocultar vista de clases
+    document.getElementById("courseClassesView").style.display = "none";
 
-  renderCoursesList();
+    // Re-renderizar la lista de cursos
+    renderCoursesList();
+  }
 }
 
 function createClassInCurrentCourse() {
@@ -2808,13 +3066,22 @@ function renderCoursesList() {
             <div class="course-actions">
                 <button onclick="createClassInCourse('${
                   course.id
-                }')" class="btn btn-secondary btn-small">Nueva Clase</button>
+                }')" class="btn btn-secondary btn-small">
+                    <span class="icon icon-plus"></span>
+                    <span>Nueva Clase</span>
+                </button>
                 <button onclick="editCourseDialog('${
                   course.id
-                }')" class="btn btn-secondary btn-small">Editar</button>
+                }')" class="btn btn-secondary btn-small">
+                    <span class="icon icon-edit"></span>
+                    <span>Editar</span>
+                </button>
                 <button onclick="planner.deleteCourse('${
                   course.id
-                }')" class="btn btn-danger btn-small">Eliminar</button>
+                }')" class="btn btn-danger btn-small">
+                    <span class="icon icon-delete"></span>
+                    <span>Eliminar</span>
+                </button>
             </div>
         </div>
     `
@@ -2887,10 +3154,14 @@ function cancelCreateClass() {
   // Volver a la vista de clases del curso
   if (planner && planner.currentCourseId) {
     switchTab("courses");
-    // Asegurarse de que se muestre la vista de clases, no la lista de cursos
+
+    // Asegurar que se muestre la vista correcta
     setTimeout(() => {
       document.getElementById("coursesListView").style.display = "none";
       document.getElementById("courseClassesView").style.display = "block";
+
+      // Forzar el re-render de las clases del curso actual
+      planner.renderClasses();
     }, 50);
   } else {
     // Si no hay curso seleccionado, volver a la lista de cursos
@@ -2941,6 +3212,97 @@ function handleFileImport(input) {
     input.value = "";
   }
 }
+
+function showNotification(title, message, type = "info", duration = 5000) {
+  const container = document.getElementById("notificationContainer");
+  if (!container) return;
+
+  const notification = document.createElement("div");
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+        <div class="notification-icon"></div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+  container.appendChild(notification);
+
+  // Auto-remove after duration
+  if (duration > 0) {
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.classList.add("hiding");
+        setTimeout(() => notification.remove(), 300);
+      }
+    }, duration);
+  }
+
+  return notification;
+}
+
+function initializeNotifications() {
+  // Crear contenedor si no existe
+  let container = document.getElementById("notificationContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "notificationContainer";
+    container.className = "notification-container";
+    document.body.appendChild(container);
+  }
+
+  // Forzar estilos de posición
+  container.style.position = "fixed";
+  container.style.top = "20px";
+  container.style.right = "20px";
+  container.style.zIndex = "10000";
+}
+
+function showNotification(title, message, type = "info", duration = 5000) {
+  // Asegurar que el contenedor esté inicializado
+  initializeNotifications();
+
+  const container = document.getElementById("notificationContainer");
+
+  const notification = document.createElement("div");
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+        <div class="notification-icon"></div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="closeNotification(this)">×</button>
+    `;
+
+  container.appendChild(notification);
+
+  // Auto-remove after duration
+  if (duration > 0) {
+    setTimeout(() => {
+      closeNotification(notification.querySelector(".notification-close"));
+    }, duration);
+  }
+
+  return notification;
+}
+
+function closeNotification(closeButton) {
+  const notification = closeButton.closest(".notification");
+  if (notification) {
+    notification.classList.add("hiding");
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }
+}
+
+// Inicializar al cargar la página
+document.addEventListener("DOMContentLoaded", initializeNotifications);
 
 // Event listeners for translation
 document.addEventListener("DOMContentLoaded", () => {
