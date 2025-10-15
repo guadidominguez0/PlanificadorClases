@@ -432,7 +432,6 @@ class EnglishClassPlanner {
     fileItem.innerHTML = `
             <div class="drag-handle">⋮⋮</div>
             <div class="file-info">
-                <span class="file-icon">${fileIcon}</span>
                 <div class="file-details">
                     <span class="file-name">${fileData.name}</span>
                     <span class="file-size">${fileSize}</span>
