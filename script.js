@@ -634,7 +634,6 @@ class EnglishClassPlanner {
           activity.files && activity.files.length > 0
             ? `
                 <div class="files-section">
-                    <div class="files-title">Archivos</div>
                     <div class="files-grid">
                         ${activity.files
                           .map((file) => this.createFileDisplay(file))
@@ -746,7 +745,6 @@ class EnglishClassPlanner {
             <div class="class-header-info">
                 <div class="class-date-display">
                     <span class="date-english">${englishDate}</span>
-                    <span class="date-local">${dateInfo.full}</span>
                 </div>
             </div>
             
@@ -1288,7 +1286,7 @@ class EnglishClassPlanner {
     const icon = this.getFileIcon(file.type);
     return `
             <div class="file-display-item" onclick="previewFile('${file.id}')" title="Ver ${file.name}">
-                ${icon} ${file.name}
+                ${file.name}
             </div>
         `;
   }
@@ -1424,7 +1422,6 @@ class EnglishClassPlanner {
                                   activity.files && activity.files.length > 0
                                     ? `
                                         <div class="resources-section">
-                                            <div class="resources-title">Archivos</div>
                                             <div class="files-grid">
                                                 ${activity.files
                                                   .map((file) =>
