@@ -100,9 +100,8 @@ class EnglishClassPlanner {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `english-classes-backup-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    a.download = `english-classes-backup-${new Date().toISOString().split("T")[0]
+      }.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -218,7 +217,7 @@ class EnglishClassPlanner {
 
   loadCourses() {
     const stored = JSON.parse(localStorage.getItem("englishCourses") || "[]");
-    return stored;
+    return stored.sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
   saveCourses() {
@@ -438,12 +437,10 @@ class EnglishClassPlanner {
                 </div>
             </div>
             <div class="file-actions">
-                <button class="file-preview-btn" onclick="previewFile('${
-                  fileData.id
-                }')" title="Ver archivo"></button>
-                <button class="file-remove-btn" onclick="${
-                  type === "homework" ? "removeHomeworkFile" : "removeFile"
-                }(this, '${fileData.id}')" title="Eliminar">🗑️</button>
+                <button class="file-preview-btn" onclick="previewFile('${fileData.id
+      }')" title="Ver archivo"></button>
+                <button class="file-remove-btn" onclick="${type === "homework" ? "removeHomeworkFile" : "removeFile"
+      }(this, '${fileData.id}')" title="Eliminar">🗑️</button>
             </div>
         `;
 
@@ -482,7 +479,7 @@ class EnglishClassPlanner {
         return (
           e.clientY <=
           sibling.getBoundingClientRect().top +
-            sibling.getBoundingClientRect().height / 2
+          sibling.getBoundingClientRect().height / 2
         );
       });
 
@@ -635,8 +632,8 @@ class EnglishClassPlanner {
                 <div class="files-section">
                     <div class="files-grid">
                         ${activity.files
-                          .map((file) => this.createFileDisplay(file))
-                          .join("")}
+              .map((file) => this.createFileDisplay(file))
+              .join("")}
                     </div>
                 </div>`
             : "";
@@ -647,21 +644,20 @@ class EnglishClassPlanner {
                 <div class="links-section">
                     <div class="links-grid">
                         ${activity.links
-                          .map(
-                            (link) => `
-                            <a href="${
-                              link.url
-                            }" target="_blank" class="link-item">
+              .map(
+                (link) => `
+                            <a href="${link.url
+                  }" target="_blank" class="link-item">
                                 <span class="link-icon"></span>
                                 <span class="link-text">
                                     <span class="link-name">${link.name}</span>
                                     <span class="link-url">${this.getDomainFromUrl(
-                                      link.url
-                                    )}</span>
+                    link.url
+                  )}</span>
                                 </span>
                             </a>`
-                          )
-                          .join("")}
+              )
+              .join("")}
                     </div>
                 </div>`
             : "";
@@ -670,14 +666,11 @@ class EnglishClassPlanner {
             <div class="activity-card">
                 <div class="activity-header">
                     <span class="activity-number">${index + 1}.</span>
-                    <span class="activity-type-badge type-${
-                      activity.type
-                    }">${this.capitalizeFirstLetter(activity.type)}</span>
+                    <span class="activity-type-badge type-${activity.type
+          }">${this.capitalizeFirstLetter(activity.type)}</span>
                 </div>
                 <div class="activity-content">
-                    <div class="activity-text">${
-                      activity.textHtml || activity.text
-                    }</div>
+                  <div class="activity-text">${activity.textHtml ? activity.textHtml : activity.text.replace(/\n/g, '<br>')}</div>
                     ${filesHtml}
                     ${linksHtml}
                 </div>
@@ -693,8 +686,8 @@ class EnglishClassPlanner {
               <div class="files-title">Archivos de tarea</div>
               <div class="files-grid">
                   ${classData.homeworkFiles
-                    .map((file) => this.createFileDisplay(file))
-                    .join("")}
+          .map((file) => this.createFileDisplay(file))
+          .join("")}
               </div>
           </div>`
         : "";
@@ -706,19 +699,19 @@ class EnglishClassPlanner {
               <div class="files-title">Enlaces de tarea</div>
               <div class="links-grid">
                   ${classData.homeworkLinks
-                    .map(
-                      (link) => `
+          .map(
+            (link) => `
                       <a href="${link.url}" target="_blank" class="link-item">
                           <span class="link-icon"></span>
                           <span class="link-text">
                               <span class="link-name">${link.name}</span>
                               <span class="link-url">${this.getDomainFromUrl(
-                                link.url
-                              )}</span>
+              link.url
+            )}</span>
                           </span>
                       </a>`
-                    )
-                    .join("")}
+          )
+          .join("")}
               </div>
           </div>`
         : "";
@@ -731,7 +724,7 @@ class EnglishClassPlanner {
                   <h3 class="homework-title">Tarea</h3>
               </div>
               <div class="homework-content">
-                  ${classData.homeworkHtml || classData.homework}
+                  ${classData.homeworkHtml ? classData.homeworkHtml : classData.homework.replace(/\n/g, '<br>')}
               </div>
               ${homeworkFilesHtml}
               ${homeworkLinksHtml}
@@ -1329,12 +1322,15 @@ class EnglishClassPlanner {
   renderClasses(classesToRender = null) {
     const container = document.getElementById("classesList");
 
-    // Si hay un curso seleccionado, mostrar solo sus clases
-    let classesForDisplay =
-      classesToRender ||
+    // Ordenar clases por fecha (más reciente primero)
+    let classesForDisplay = classesToRender ||
       (this.currentCourseId
         ? this.getClassesByCourse(this.currentCourseId)
         : this.classes);
+
+    classesForDisplay = [...classesForDisplay].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
 
     if (classesForDisplay.length === 0) {
       container.innerHTML = `
@@ -1381,29 +1377,24 @@ class EnglishClassPlanner {
         const summaryText = summaryItems.join(" • ");
 
         return `
-                <div class="class-card ${
-                  classesForDisplay.length > 1 ? "fade-in" : ""
-                }" data-class-id="${classData.id}">
-                    <div class="class-card-header" onclick="toggleClassExpansion('${
-                      classData.id
-                    }', event)">
+                <div class="class-card ${classesForDisplay.length > 1 ? "fade-in" : ""
+          }" data-class-id="${classData.id}">
+                    <div class="class-card-header" onclick="toggleClassExpansion('${classData.id
+          }', event)">
                         <div class="class-date-info">
                             <div class="class-date-badge">
-                                <span class="class-weekday">${
-                                  dateInfo.weekday
-                                }</span>
-                                <span class="class-date">${
-                                  dateInfo.dayNumber
-                                }</span>
+                                <span class="class-weekday">${dateInfo.weekday
+          }</span>
+                                <span class="class-date">${dateInfo.dayNumber
+          }</span>
                             </div>
                             <div class="class-meta">
                                 <span class="class-summary">${summaryText}</span>
                             </div>
                         </div>
                         <div class="class-header-actions">
-                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${
-                              classData.id
-                            }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
+                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${classData.id
+          }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
                                 <span class="icon-fullscreen"></span>
                             </button>
                             <button class="btn-icon expand-toggle-btn" title="Expandir">
@@ -1415,130 +1406,112 @@ class EnglishClassPlanner {
                     <div class="class-card-content" style="display: none;">
                         <div class="activities-container">
                             ${classData.activities
-                              .map((activity, index) => {
-                                const filesHtml =
-                                  activity.files && activity.files.length > 0
-                                    ? `
+            .map((activity, index) => {
+              const filesHtml =
+                activity.files && activity.files.length > 0
+                  ? `
                                         <div class="resources-section">
                                             <div class="files-grid">
                                                 ${activity.files
-                                                  .map((file) =>
-                                                    this.createFileDisplay(file)
-                                                  )
-                                                  .join("")}
+                    .map((file) =>
+                      this.createFileDisplay(file)
+                    )
+                    .join("")}
                                             </div>
                                         </div>`
-                                    : "";
+                  : "";
 
-                                const linksHtml =
-                                  activity.links && activity.links.length > 0
-                                    ? `
+              const linksHtml =
+                activity.links && activity.links.length > 0
+                  ? `
                                         <div class="resources-section">
                                             <div class="links-grid">
                                                 ${activity.links
-                                                  .map(
-                                                    (link) => `
+                    .map(
+                      (link) => `
                                                         <a href="${link.url}" target="_blank" class="link-item">
                                                             <span class="link-icon"></span>
                                                             <span class="link-text">
                                                                 <span class="link-name">${link.name}</span>
                                                             </span>
                                                         </a>`
-                                                  )
-                                                  .join("")}
+                    )
+                    .join("")}
                                             </div>
                                         </div>`
-                                    : "";
+                  : "";
 
-                                return `
+              return `
                                     <div class="activity-item">
                                         <div class="activity-header">
-                                            <span class="activity-number">${
-                                              index + 1
-                                            }.</span>
-                                            <span class="activity-type-badge type-${
-                                              activity.type
-                                            }">${this.capitalizeFirstLetter(
-                                  activity.type
-                                )}</span>
+                                            <span class="activity-number">${index + 1
+                }.</span>
+                                            <span class="activity-type-badge type-${activity.type
+                }">${this.capitalizeFirstLetter(
+                  activity.type
+                )}</span>
                                         </div>
                                         <div class="activity-content">
-                                            <div class="activity-text">${
-                                              activity.textHtml || activity.text
-                                            }</div>
+                                            <div class="activity-text">${activity.textHtml ? activity.textHtml : activity.text.replace(/\n/g, '<br>')
+                }</div>
                                             ${filesHtml}
                                             ${linksHtml}
                                         </div>
                                     </div>
                                 `;
-                              })
-                              .join("")}
+            })
+            .join("")}
                         </div>
                         
-                        ${
-                          classData.homework
-                            ? `
+                        ${classData.homework
+            ? `
                             <div class="homework-preview">
                                 <div class="homework-header">
                                     <span class="homework-icon"></span>
                                     <span class="homework-title">Tarea</span>
                                 </div>
                                 <div class="homework-content-preview">
-                                    ${this.truncateText(
-                                      classData.homeworkHtml
-                                        ? this.stripHtml(classData.homeworkHtml)
-                                        : classData.homework,
-                                      120
-                                    )}
+                                    ${classData.homeworkHtml ? classData.homeworkHtml : classData.homework.replace(/\n/g, '<br>')}
                                 </div>
-                                ${
-                                  classData.homeworkFiles &&
-                                  classData.homeworkFiles.length > 0
-                                    ? `<div class="homework-resources">
-                                        <span class="resources-count">${
-                                          classData.homeworkFiles.length
-                                        } archivo${
-                                        classData.homeworkFiles.length !== 1
-                                          ? "s"
-                                          : ""
-                                      }</span>
+                                ${classData.homeworkFiles &&
+              classData.homeworkFiles.length > 0
+              ? `<div class="homework-resources">
+                                        <span class="resources-count">${classData.homeworkFiles.length
+              } archivo${classData.homeworkFiles.length !== 1
+                ? "s"
+                : ""
+              }</span>
                                     </div>`
-                                    : ""
-                                }
-                                ${
-                                  classData.homeworkLinks &&
-                                  classData.homeworkLinks.length > 0
-                                    ? `<div class="homework-resources">
-                                        <span class="resources-count">${
-                                          classData.homeworkLinks.length
-                                        } enlace${
-                                        classData.homeworkLinks.length !== 1
-                                          ? "s"
-                                          : ""
-                                      }</span>
+              : ""
+            }
+                                ${classData.homeworkLinks &&
+              classData.homeworkLinks.length > 0
+              ? `<div class="homework-resources">
+                                        <span class="resources-count">${classData.homeworkLinks.length
+              } enlace${classData.homeworkLinks.length !== 1
+                ? "s"
+                : ""
+              }</span>
                                     </div>`
-                                    : ""
-                                }
+              : ""
+            }
                             </div>`
-                            : ""
-                        }
+            : ""
+          }
                         
                         <div class="class-card-actions">
-                            <button onclick="event.stopPropagation(); planner.editClass('${
-                              classData.id
-                            }')" class="btn-action btn-edit">
+                            <button onclick="event.stopPropagation(); planner.editClass('${classData.id
+          }')" class="btn-action btn-edit">
                                 <span class="btn-icon edit-icon"></span>
                                 <span class="btn-text">Editar</span>
                             </button>
-                            <button onclick="event.stopPropagation(); planner.shareClass('${
-                              classData.id
-                            }')" class="btn-action btn-share">
+                            <button onclick="event.stopPropagation(); planner.shareClass('${classData.id
+          }')" class="btn-action btn-share">
                                 <span class="btn-icon share-icon"></span>
                                 <span class="btn-text">Compartir</span>
                             </button>
-                            <button onclick="event.stopPropagation(); planner.deleteClass('${
-                              classData.id
-                            }')" class="btn-action btn-delete">
+                            <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id
+          }')" class="btn-action btn-delete">
                                 <span class="btn-icon delete-icon"></span>
                                 <span class="btn-text">Eliminar</span>
                             </button>
@@ -1651,9 +1624,8 @@ class EnglishClassPlanner {
       "editor-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
 
     const editorHTML = `
-            <div class="rich-text-container ${
-              isHomework ? "homework-rich-text-container" : ""
-            }">
+            <div class="rich-text-container ${isHomework ? "homework-rich-text-container" : ""
+      }">
                 <div id="${editorId}" data-placeholder="${placeholder}"></div>
             </div>
         `;
@@ -1810,9 +1782,8 @@ class EnglishClassPlanner {
 
     text += `ACTIVIDADES:\n`;
     classData.activities.forEach((activity, index) => {
-      text += `${index + 1}. [${activity.type.toUpperCase()}] ${
-        activity.text
-      }\n`;
+      text += `${index + 1}. [${activity.type.toUpperCase()}] ${activity.text
+        }\n`;
       if (activity.files && activity.files.length > 0) {
         text += `   Archivos: ${activity.files
           .map((f) => f.name)
@@ -1856,9 +1827,8 @@ class EnglishClassPlanner {
     let htmlContent = `
         <html>
         <head>
-            <title>English Class - ${
-              this.formatDate(classData.date).full
-            }</title>
+            <title>English Class - ${this.formatDate(classData.date).full
+      }</title>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
@@ -2315,17 +2285,25 @@ class EnglishClassPlanner {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
-  truncateText(text, maxLength) {
-    if (!text) return "";
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "...";
-  }
+  // truncateText(text, maxLength) {
+  //   if (!text) return "";
+  //   if (text.length <= maxLength) return text;
+  //   return text.substring(0, maxLength) + "...";
+  // }
 
   stripHtml(html) {
     const tmp = document.createElement("div");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
   }
+
+  // truncateHtml(html, maxLength) {
+  //   const text = this.stripHtml(html);
+  //   if (text.length <= maxLength) return html;
+
+  //   // Si el texto es muy largo, mostrar versión truncada como texto
+  //   return this.truncateText(text, maxLength);
+  // }
 }
 
 let planner;
@@ -3043,36 +3021,34 @@ function renderCoursesList() {
   const container = document.getElementById("coursesList");
   if (!container) return;
 
-  container.innerHTML = planner.courses
+  const sortedCourses = [...planner.courses].sort((a, b) =>
+    a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })
+  );
+
+  container.innerHTML = sortedCourses
     .map(
       (course) => `
-        <div class="course-item" data-course-id="${
-          course.id
+        <div class="course-item" data-course-id="${course.id
         }" onclick="selectCourse('${course.id}')">
-            <div class="course-header" style="border-left: 4px solid ${
-              course.color
-            };">
+            <div class="course-header" style="border-left: 4px solid ${course.color
+        };">
                 <div class="course-name">${course.name}</div>
-                <div class="course-count">${
-                  planner.getClassesByCourse(course.id).length
-                } clases</div>
+                <div class="course-count">${planner.getClassesByCourse(course.id).length
+        } clases</div>
             </div>
             <div class="course-actions">
-                <button onclick="createClassInCourse('${
-                  course.id
-                }')" class="btn btn-secondary btn-small">
+                <button onclick="createClassInCourse('${course.id
+        }')" class="btn btn-secondary btn-small">
                     <span class="icon icon-plus"></span>
                     <span class="btn-text">Nueva Clase</span>
                 </button>
-                <button onclick="editCourseDialog('${
-                  course.id
-                }')" class="btn btn-secondary btn-small">
+                <button onclick="editCourseDialog('${course.id
+        }')" class="btn btn-secondary btn-small">
                     <span class="icon icon-edit"></span>
                     <span class="btn-text">Editar</span>
                 </button>
-                <button onclick="planner.deleteCourse('${
-                  course.id
-                }')" class="btn btn-danger btn-small">
+                <button onclick="planner.deleteCourse('${course.id
+        }')" class="btn btn-danger btn-small">
                     <span class="icon icon-delete"></span>
                     <span class="btn-text">Eliminar</span>
                 </button>

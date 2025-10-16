@@ -633,6 +633,10 @@ textarea {
     margin-bottom: 1rem;
 }
 
+activity-item ol, activity-item ul{
+    padding-left: 2rem;
+}
+
 .activity-item:hover {
     border-color: #37352f;
 }
@@ -2245,6 +2249,7 @@ textarea {
     line-height: 1.5;
     min-height: 100px;
     color: #37352f;
+    white-space: pre-wrap;
 }
 
 .rich-text-container .ql-editor.ql-blank::before {
@@ -3209,4 +3214,92 @@ html {
 .skeleton-button {
     height: 2.5rem;
     border-radius: 4px;
+}
+
+/* Estilos para listas en rich text editor y contenido renderizado */
+.activity-text ol,
+.activity-text ul,
+.homework-content ol,
+.homework-content ul,
+.homework-content-preview ol,
+.homework-content-preview ul,
+.ql-editor ol,
+.ql-editor ul {
+    padding-left: 2rem;
+    margin: 0.5rem 0;
+}
+
+.activity-text ol li,
+.homework-content ol li,
+.ql-editor ol li {
+    list-style-type: decimal;
+    margin-bottom: 0.25rem;
+}
+
+.activity-text ul li,
+.homework-content ul li,
+.ql-editor ul li {
+    list-style-type: disc;
+    margin-bottom: 0.25rem;
+}
+
+/* Para listas anidadas */
+.activity-text ol ol,
+.activity-text ul ul,
+.homework-content ol ol,
+.homework-content ul ul,
+.ql-editor ol ol,
+.ql-editor ul ul {
+    margin: 0.25rem 0;
+    padding-left: 1.5rem;
+}
+
+/* Para el modal de detalle */
+.class-detail-view .activity-text ol,
+.class-detail-view .activity-text ul,
+.class-detail-view .homework-content ol,
+.class-detail-view .homework-content ul {
+    padding-left: 2rem;
+    margin: 0.5rem 0;
+}
+
+.class-detail-view .activity-text ol li,
+.class-detail-view .homework-content ol li {
+    list-style-type: decimal;
+    margin-bottom: 0.25rem;
+}
+
+.class-detail-view .activity-text ul li,
+.class-detail-view .homework-content ul li {
+    list-style-type: disc;
+    margin-bottom: 0.25rem;
+}
+
+/* Asegurar que el HTML se renderice correctamente */
+.activity-text,
+.homework-content,
+.homework-content-preview {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.activity-text > *,
+.homework-content > * {
+    margin: 0;
+}
+
+.activity-text > * + *,
+.homework-content > * + * {
+    margin-top: 0.5rem;
+}
+
+/* Asegurar que las listas se vean bien */
+.activity-text p,
+.homework-content p {
+    margin: 0 0 0.5rem 0;
+}
+
+.activity-text p:last-child,
+.homework-content p:last-child {
+    margin-bottom: 0;
 }
