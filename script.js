@@ -2285,6 +2285,56 @@ class EnglishClassPlanner {
                       border-color: #e9e9e7;
                   }
               }
+
+              .activity ol,
+              .activity ul,
+              .homework ol,
+              .homework ul {
+                  padding-left: 2rem;
+                  margin: 0.5rem 0;
+              }
+
+              .activity ol li,
+              .homework ol li {
+                  list-style-type: decimal;
+                  margin-bottom: 0.25rem;
+                  margin-left: 0;
+              }
+
+              .activity ul li,
+              .homework ul li {
+                  list-style-type: disc;
+                  margin-bottom: 0.25rem;
+                  margin-left: 0;
+              }
+
+              .activity ol ol,
+              .activity ul ul,
+              .homework ol ol,
+              .homework ul ul {
+                  margin: 0.25rem 0;
+                  padding-left: 1.5rem;
+              }
+
+              .activity p,
+              .homework p {
+                  margin: 0 0 0.5rem 0;
+              }
+
+              .activity p:last-child,
+              .homework p:last-child {
+                  margin-bottom: 0;
+              }
+
+              .activity > *,
+              .homework > * {
+                  margin: 0;
+              }
+
+              .activity > * + *,
+              .homework > * + * {
+                  margin-top: 0.5rem;
+              }
             </style>
         </head>
         <body>
