@@ -1994,12 +1994,6 @@ class EnglishClassPlanner {
                   margin-bottom: 0;
               }
 
-              .files-section {
-                  margin-top: 16px;
-                  padding-top: 16px;
-                  border-top: 1px solid #e9e9e7;
-              }
-
               .files-title {
                   font-size: 14px;
                   font-weight: 600;
@@ -2035,13 +2029,46 @@ class EnglishClassPlanner {
                   transform: scale(0.98);
               }
 
-              /* Icono para archivos */
               .file-link::before {
                   content: "";
                   width: 16px;
                   height: 16px;
                   background: currentColor;
                   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E") no-repeat center;
+              }
+
+              .link-item {
+                  display: inline-flex;
+                  align-items: center;
+                  margin: 0 8px 8px 0;
+                  padding: 8px 12px;
+                  background: #ffffff;
+                  color: #37352f;
+                  text-decoration: none;
+                  border-radius: 4px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  transition: all 0.15s ease;
+                  border: 1px solid #e9e9e7;
+                  gap: 6px;
+              }
+
+              .link-item:hover {
+                  background: #37352f;
+                  color: #ffffff;
+                  border-color: #37352f;
+              }
+
+              .link-item:active {
+                  transform: scale(0.98);
+              }
+
+              .link-item::before {
+                  content: "";
+                  width: 16px;
+                  height: 16px;
+                  background: currentColor;
+                  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.71-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z'/%3E%3C/svg%3E") no-repeat center;
               }
 
               .homework { 
@@ -2063,7 +2090,6 @@ class EnglishClassPlanner {
                   gap: 8px;
               }
 
-              /* Icono para tarea */
               .homework h2::before {
                   content: "";
                   width: 18px;
@@ -2098,7 +2124,17 @@ class EnglishClassPlanner {
                   border-color: #f39c12;
               }
 
-              /* Tipos de actividad con colores Notion */
+              .homework .link-item {
+                  color: #8e6c0a;
+                  border-color: #f39c12;
+              }
+
+              .homework .link-item:hover {
+                  background: #f39c12;
+                  color: #ffffff;
+                  border-color: #f39c12;
+              }
+
               .type-game { background: #f39c12; }
               .type-activity { background: #27ae60; }
               .type-vocabulary { background: #9b59b6; }
@@ -2107,7 +2143,6 @@ class EnglishClassPlanner {
               .type-exam { background: #e74c3c; }
               .type-oral { background: #e67e22; }
 
-              /* Responsive mejorado */
               @media (max-width: 768px) {
                   body {
                       padding: 16px;
@@ -2158,7 +2193,7 @@ class EnglishClassPlanner {
                       margin-top: 20px;
                   }
                   
-                  .file-link {
+                  .file-link, .link-item {
                       display: flex;
                       width: 100%;
                       text-align: left;
@@ -2167,8 +2202,11 @@ class EnglishClassPlanner {
                   }
                   
                   .files-section {
-                      margin-top: 12px;
-                      padding-top: 12px;
+                    margin-top: 12px;
+                  }
+                  
+                  .files-section, .links-section {
+                      padding-top: 0;
                   }
               }
 
@@ -2209,13 +2247,12 @@ class EnglishClassPlanner {
                       font-size: 15px;
                   }
                   
-                  .file-link {
+                  .file-link, .link-item {
                       font-size: 13px;
                       padding: 6px 10px;
                   }
               }
 
-              /* Mejoras de impresión */
               @media print {
                   body {
                       background: #ffffff;
@@ -2237,12 +2274,12 @@ class EnglishClassPlanner {
                       border: 1px solid #e9e9e7;
                   }
                   
-                  .file-link {
+                  .file-link, .link-item {
                       border: 1px solid #e9e9e7;
                       color: #37352f;
                   }
                   
-                  .file-link:hover {
+                  .file-link:hover, .link-item:hover {
                       background: transparent;
                       color: #37352f;
                       border-color: #e9e9e7;
@@ -2274,12 +2311,25 @@ class EnglishClassPlanner {
       if (activity.files && activity.files.length > 0) {
         htmlContent += `
                 <div class="files-section">
+                    <div class="files-title"></div>
                 `;
         activity.files.forEach((file) => {
           const fileData = this.fileStorage.get(file.id);
           if (fileData) {
             htmlContent += `<a href="${fileData.data}" download="${file.name}" class="file-link">${file.name}</a>`;
           }
+        });
+        htmlContent += "</div>";
+      }
+
+      // Agregar links de actividades
+      if (activity.links && activity.links.length > 0) {
+        htmlContent += `
+                <div class="links-section">
+                    <div class="files-title"></div>
+                `;
+        activity.links.forEach((link) => {
+          htmlContent += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">${link.name}</a>`;
         });
         htmlContent += "</div>";
       }
@@ -2297,13 +2347,25 @@ class EnglishClassPlanner {
       if (classData.homeworkFiles && classData.homeworkFiles.length > 0) {
         htmlContent += `
                 <div class="files-section">
-                    <div class="files-title">Files</div>
+                    <div class="files-title"></div>
                 `;
         classData.homeworkFiles.forEach((file) => {
           const fileData = this.fileStorage.get(file.id);
           if (fileData) {
             htmlContent += `<a href="${fileData.data}" download="${file.name}" class="file-link">${file.name}</a>`;
           }
+        });
+        htmlContent += "</div>";
+      }
+
+      // Agregar links de homework
+      if (classData.homeworkLinks && classData.homeworkLinks.length > 0) {
+        htmlContent += `
+                <div class="links-section">
+                    <div class="files-title"></div>
+                `;
+        classData.homeworkLinks.forEach((link) => {
+          htmlContent += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">${link.name}</a>`;
         });
         htmlContent += "</div>";
       }
