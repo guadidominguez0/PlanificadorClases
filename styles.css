@@ -633,7 +633,8 @@ textarea {
     margin-bottom: 1rem;
 }
 
-activity-item ol, activity-item ul{
+activity-item ol,
+activity-item ul {
     padding-left: 2rem;
 }
 
@@ -1500,141 +1501,153 @@ activity-item ol, activity-item ul{
 
 /* Responsive Design - Mejorado */
 @media (max-width: 768px) {
+    h1 {
+        display: none;
+    }
+
     .container {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .header-with-nav {
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    .logo-section h1 {
-        font-size: 1.5rem;
+        padding: 0.75rem;
+        display: flex;
+        justify-content: flex-end;
     }
 
     .card {
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 0.75rem;
     }
 
     .courses-header {
+        padding: 1rem;
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
+        gap: 0.75rem;
     }
 
     .courses-header .btn {
-        width: 100%;
+        width: 100% !important;
+        box-sizing: border-box;
     }
 
-    .courses-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .course-actions {
-        justify-content: center;
-    }
-
-    .classes-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .view-classes-controls {
-        justify-content: center;
+    .class-card {
+        padding: 0.75rem;
     }
 
     .class-card-header {
-        flex-direction: column;
-        gap: 1rem;
+        padding: 12px 0;
+    }
+
+    .activity-item {
         padding: 1rem;
     }
 
-    .class-date-info {
-        width: 100%;
+    .class-actions .btn {
+        font-size: 0.75rem;
     }
 
-    .class-header-actions {
-        align-self: flex-end;
+    .course-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 12px 30px 12px 30px;
     }
 
-    .class-card-content {
-        padding: 0 1rem 1rem;
-    }
-
-    .class-card-actions {
-        flex-direction: column;
-    }
-
-    .btn-action {
-        flex: none;
-        width: 100%;
-    }
-
-    .activity-header-detailed,
-    .activity-header-modal {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .activity-number {
+    .course-actions .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
         min-width: auto;
-    }
-
-    .translate-content {
-        grid-template-columns: 1fr;
-    }
-
-    .translate-header {
-        flex-wrap: wrap;
-    }
-
-    .swap-languages-btn {
-        order: 3;
-        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e9e9e7;
         border-radius: 4px;
-        height: 36px;
+        background: #f7f6f3;
+        color: #787774;
     }
 
-    .copy-translation-btn {
-        position: static;
-        width: 100%;
-        margin-top: 0.5rem;
-        opacity: 1;
-        pointer-events: auto;
+    .course-actions .btn-text {
+        display: none;
+    }
+
+    .class-date-info {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .class-date-badge {
+        flex-direction: row;
+        min-width: auto;
+        align-self: flex-start;
+    }
+
+    .class-weekday,
+    .class-date {
+        width: auto;
+        height: 30px;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+    }
+
+    .class-date {
+        border: 1px solid #e9e9e7;
+        border-left: none;
+        border-radius: 0 4px 4px 0;
+    }
+
+    .class-weekday {
+        border-radius: 4px 0 0 4px;
     }
 
     .class-detail-modal .modal-content {
-        margin: 1rem auto;
-        max-height: 95vh;
+        margin: 0.5rem auto;
+        width: 98vw;
     }
 
     .class-header-info,
     .activities-container-modal {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .homework-card {
-        margin: 1rem;
+        margin: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .activity-card {
         padding: 1rem;
     }
 
-    .class-actions-footer {
-        padding: 1rem;
-        flex-direction: column;
+    .view-classes-controls {
+        flex-direction: row !important;
+        gap: 10px;
     }
 
-    .notification {
-        right: 1rem;
-        left: 1rem;
-        max-width: none;
+    .view-classes-controls .btn {
+        flex: 1;
+        width: auto;
+        height: 32px;
+        padding: auto;
+    }
+
+    .class-card-actions {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .btn-text {
+        font-size: 0.85rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        width: auto;
+    }
+
+    .btn-text {
+        display: none;
     }
 }
 
@@ -3283,13 +3296,13 @@ html {
     word-wrap: break-word;
 }
 
-.activity-text > *,
-.homework-content > * {
+.activity-text>*,
+.homework-content>* {
     margin: 0;
 }
 
-.activity-text > * + *,
-.homework-content > * + * {
+.activity-text>*+*,
+.homework-content>*+* {
     margin-top: 0.5rem;
 }
 
