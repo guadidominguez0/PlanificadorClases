@@ -3316,3 +3316,8 @@ html {
 .homework-content p:last-child {
     margin-bottom: 0;
 }
+
+.icon-expand {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}

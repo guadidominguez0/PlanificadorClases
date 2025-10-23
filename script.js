@@ -1416,7 +1416,9 @@ class EnglishClassPlanner {
                             }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
                                 <span class="icon-fullscreen"></span>
                             </button>
-                            <button class="btn-icon expand-toggle-btn" title="Expandir">
+                            <button class="btn-icon expand-toggle-btn" title="Expandir" onclick="toggleClassExpansion('${
+                              classData.id
+                            }', event)">
                                 <span class="icon-expand"></span>
                             </button>
                         </div>
@@ -2897,9 +2899,16 @@ function toggleAllClasses() {
 }
 
 function toggleClassExpansion(classId, event) {
-  // Si viene de un botón, no hacer nada
-  if (event && event.target.closest("button")) {
+  if (event) {
     event.stopPropagation();
+  }
+
+  // Si viene de otro botón que NO es el de expandir, no hacer nada
+  if (
+    event &&
+    event.target.closest("button") &&
+    !event.target.closest(".expand-toggle-btn")
+  ) {
     return;
   }
 
@@ -2912,9 +2921,11 @@ function toggleClassExpansion(classId, event) {
   if (classCard.classList.contains("expanded")) {
     classCard.classList.remove("expanded");
     content.style.display = "none";
+    expandIcon.style.transform = "rotate(0deg)";
   } else {
     classCard.classList.add("expanded");
     content.style.display = "block";
+    expandIcon.style.transform = "rotate(180deg)";
   }
 }
 
