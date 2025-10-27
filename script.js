@@ -1034,10 +1034,12 @@ class EnglishClassPlanner {
     }, 100);
   }
 
-  deleteClass(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar esta clase?")) {
-      const classData = this.classes.find((c) => c.id === id);
-      if (classData) {
+  deleteCourse(courseId) {
+    if (confirm("¿Estás seguro? Se eliminarán TODAS las clases del curso.")) {
+      const classesInCourse = this.getClassesByCourse(courseId);
+
+      // Eliminar archivos asociados
+      classesInCourse.forEach((classData) => {
         classData.activities.forEach((activity) => {
           if (activity.files) {
             activity.files.forEach((file) => {
@@ -1045,21 +1047,24 @@ class EnglishClassPlanner {
             });
           }
         });
-
         if (classData.homeworkFiles) {
           classData.homeworkFiles.forEach((file) => {
             this.fileStorage.delete(file.id);
           });
         }
+      });
 
-        this.saveFileStorage();
-      }
-
-      this.classes = this.classes.filter((c) => c.id !== id);
+      this.classes = this.classes.filter((c) => c.courseId !== courseId);
+      this.courses = this.courses.filter((c) => c.id !== courseId);
       this.saveClasses();
-      this.renderClasses(); // Ya filtrará por curso si está seleccionado
-      this.showStorageInfo();
-      this.showNotification("Clase eliminada", "error");
+      this.saveCourses();
+      this.saveFileStorage();
+      this.currentCourseId = null;
+
+      this.showNotification("Curso eliminado", "error");
+
+      // Usar la función backToCourses que maneja correctamente las vistas
+      backToCourses();
     }
   }
 
@@ -3221,25 +3226,25 @@ function renderCoursesList() {
                 } clases</div>
             </div>
             <div class="course-actions">
-                <button onclick="createClassInCourse('${
-                  course.id
-                }')" class="btn btn-secondary btn-small">
-                    <span class="icon icon-plus"></span>
-                    <span class="btn-text">Nueva Clase</span>
-                </button>
-                <button onclick="editCourseDialog('${
-                  course.id
-                }')" class="btn btn-secondary btn-small">
-                    <span class="icon icon-edit"></span>
-                    <span class="btn-text">Editar</span>
-                </button>
-                <button onclick="planner.deleteCourse('${
-                  course.id
-                }')" class="btn btn-danger btn-small">
-                    <span class="icon icon-delete"></span>
-                    <span class="btn-text">Eliminar</span>
-                </button>
-            </div>
+              <button onclick="event.stopPropagation(); createClassInCourse('${
+                course.id
+              }')" class="btn btn-secondary btn-small">
+                  <span class="icon icon-plus"></span>
+                  <span class="btn-text">Nueva Clase</span>
+              </button>
+              <button onclick="event.stopPropagation(); editCourseDialog('${
+                course.id
+              }')" class="btn btn-secondary btn-small">
+                  <span class="icon icon-edit"></span>
+                  <span class="btn-text">Editar</span>
+              </button>
+              <button onclick="event.stopPropagation(); planner.deleteCourse('${
+                course.id
+              }')" class="btn btn-danger btn-small">
+                  <span class="icon icon-delete"></span>
+                  <span class="btn-text">Eliminar</span>
+              </button>
+          </div>
         </div>
     `
     )
