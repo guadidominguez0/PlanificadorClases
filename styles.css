@@ -501,6 +501,27 @@ textarea {
     background-color: currentColor;
 }
 
+#icon-fullscreen,
+#delete-icon,
+#drag-handle {
+    width: 25px;
+    height: 25px;
+    padding: 0 15px 0 15px;
+    background-color: darkgray;
+    color: darkgray;
+}
+
+#drag-handle {
+    background-color: white;
+    border: 0px solid;
+}
+
+#icon-fullscreen:hover,
+#delete-icon:hover,
+#drag-handle:hover {
+    background: #37352f;
+}
+
 .edit-icon {
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E") no-repeat center;
 }
@@ -645,7 +666,6 @@ activity-item ul {
 .activity-header {
     position: relative;
     margin-bottom: 1rem;
-    padding-right: 2rem;
 }
 
 .activity-type-select {
@@ -676,6 +696,7 @@ activity-item ul {
     position: absolute;
     top: 0;
     right: 0;
+    margin: 28px 28px 0 0;
 }
 
 .remove-activity:hover {
@@ -1649,6 +1670,10 @@ activity-item ul {
     .btn-text {
         display: none;
     }
+
+    .remove-activity {
+        margin: 28px 28px 0 0;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1799,6 +1824,10 @@ activity-item ul {
 
     .btn-text {
         display: none;
+    }
+
+    .remove-activity {
+        margin: 16px 16px 0 0;
     }
 }
 
@@ -2157,7 +2186,7 @@ activity-item ul {
 }
 
 .add-resource-btn:hover {
-    background: #219653;
+    background: #37352f;
 }
 
 .link-resources-list {
@@ -2178,7 +2207,7 @@ activity-item ul {
 }
 
 .link-resource-item:hover {
-    border-color: #27ae60;
+    border-color: #37352f;
 }
 
 .link-resource-info {
@@ -2196,7 +2225,7 @@ activity-item ul {
 
 .link-resource-url {
     font-size: 0.8rem;
-    color: #27ae60;
+    color: #787774;
     text-decoration: none;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2649,6 +2678,10 @@ activity-item ul {
         align-self: center;
     }
 
+    #file-actions {
+        align-self: last baseline;
+    }
+
     .drag-handle {
         align-self: center;
         margin-right: 0;
@@ -2873,6 +2906,7 @@ html {
     padding: 0px;
     padding-left: 5px;
     padding-right: 5px;
+    margin-bottom: 10px;
     font-size: 19px;
     align-items: center;
 }
@@ -3320,4 +3354,19 @@ html {
 .icon-expand {
     transition: transform 0.3s ease;
     display: inline-block;
+}
+
+.uploaded-files-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.link-resources-list-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }

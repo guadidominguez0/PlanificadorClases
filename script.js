@@ -402,7 +402,9 @@ class EnglishClassPlanner {
   }
 
   addFileToActivity(activityElement, fileData) {
-    const uploadedFiles = activityElement.querySelector(".uploaded-files");
+    const uploadedFiles = activityElement.querySelector(
+      ".uploaded-files-inline"
+    );
     const fileItem = this.createDraggableFileItem(fileData);
     uploadedFiles.appendChild(fileItem);
   }
@@ -430,20 +432,21 @@ class EnglishClassPlanner {
     const fileSize = this.formatFileSize(fileData.size);
 
     fileItem.innerHTML = `
-            <div class="drag-handle">⋮⋮</div>
             <div class="file-info">
+              <button class="btn-icon drag-handle" id="drag-handle" title="Mover">⋮⋮</button>
                 <div class="file-details">
                     <span class="file-name">${fileData.name}</span>
                     <span class="file-size">${fileSize}</span>
                 </div>
             </div>
-            <div class="file-actions">
-                <button class="file-preview-btn" onclick="previewFile('${
+            <div class="file-actions" id="file-actions">
+                <button class="btn-icon icon-fullscreen" id="icon-fullscreen" onclick="previewFile('${
                   fileData.id
                 }')" title="Ver archivo"></button>
-                <button class="file-remove-btn" onclick="${
+                <button class="btn-icon delete-icon" id="delete-icon" onclick="${
                   type === "homework" ? "removeHomeworkFile" : "removeFile"
-                }(this, '${fileData.id}')" title="Eliminar">🗑️</button>
+                }(this, '${fileData.id}')" title="Eliminar">
+                </button>
             </div>
         `;
 
@@ -784,40 +787,41 @@ class EnglishClassPlanner {
 
   createFileUploadArea() {
     return `
-            <button type="button" class="add-resource-trigger" onclick="toggleResourceSection(this)">
-                Agregar recursos
-            </button>
-            <div class="resources-main-section">
-                <div class="resource-type-selector">
-                    <button type="button" class="resource-type-btn active" onclick="toggleResourceType(this, 'file')">
-                        Subir archivo
-                    </button>
-                    <button type="button" class="resource-type-btn" onclick="toggleResourceType(this, 'link')">
-                        Agregar enlace
-                    </button>
-                </div>
-                
-                <div class="file-upload-section">
-                    <div class="file-upload-area" onclick="triggerFileInput(this)">
-                        <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleFileSelect(this)">
-                        <div class="file-upload-text">Subir archivos</div>
-                        <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
-                    </div>
-                    <div class="uploaded-files"></div>
-                </div>
-                
-                <div class="link-upload-section" style="display: none;">
-                    <div class="add-resource-section">
-                        <div class="resource-inputs">
-                            <input type="text" class="resource-name-input" placeholder="Nombre del recurso">
-                            <input type="url" class="resource-url-input" placeholder="https://...">
-                        </div>
-                        <button type="button" class="add-resource-btn" onclick="addLinkResource(this)">Agregar Enlace</button>
-                    </div>
-                    <div class="link-resources-list"></div>
-                </div>
-            </div>
-        `;
+          <div class="uploaded-files-inline"></div>
+          <div class="link-resources-list-inline"></div>
+          
+          <button type="button" class="add-resource-trigger" onclick="toggleResourceSection(this)">
+              Agregar recursos
+          </button>
+          <div class="resources-main-section">
+              <div class="resource-type-selector">
+                  <button type="button" class="resource-type-btn active" onclick="toggleResourceType(this, 'file')">
+                      Subir archivo
+                  </button>
+                  <button type="button" class="resource-type-btn" onclick="toggleResourceType(this, 'link')">
+                      Agregar enlace
+                  </button>
+              </div>
+              
+              <div class="file-upload-section">
+                  <div class="file-upload-area" onclick="triggerFileInput(this)">
+                      <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleFileSelect(this)">
+                      <div class="file-upload-text">Subir archivos</div>
+                      <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
+                  </div>
+              </div>
+              
+              <div class="link-upload-section" style="display: none;">
+                  <div class="add-resource-section">
+                      <div class="resource-inputs">
+                          <input type="text" class="resource-name-input" placeholder="Nombre del recurso">
+                          <input type="url" class="resource-url-input" placeholder="https://...">
+                      </div>
+                      <button type="button" class="add-resource-btn" onclick="addLinkResource(this)">Agregar Enlace</button>
+                  </div>
+              </div>
+          </div>
+      `;
   }
 
   addClass() {
@@ -980,9 +984,9 @@ class EnglishClassPlanner {
     activityDiv.className = "activity-item fade-in";
 
     activityDiv.innerHTML = `
+        <div class="activity-drag-handle">⋮⋮</div>
+        <button type="button" class="remove-activity" onclick="removeActivity(this)" title="Eliminar actividad">×</button>
             <div class="activity-header">
-                <div class="activity-drag-handle">⋮⋮</div>
-                <button type="button" class="remove-activity" onclick="removeActivity(this)" title="Eliminar actividad">×</button>
                 <div class="activity-main-content">
                     <div class="activity-type-row">
                         <select class="activity-type-select">
@@ -1011,16 +1015,14 @@ class EnglishClassPlanner {
     this.makeActivityDraggable(activityDiv);
     this.makeActivitiesListSortable();
 
-    const addResourceBtn = activityDiv.querySelector(".add-resource-trigger");
-    addResourceBtn.addEventListener("click", () => {
-      setTimeout(() => {
-        const uploadArea = activityDiv.querySelector(".file-upload-area");
-        if (uploadArea && !uploadArea.classList.contains("drag-setup")) {
-          this.setupDragAndDropForElement(uploadArea);
-          uploadArea.classList.add("drag-setup");
-        }
-      }, 100);
-    });
+    // Configurar drag and drop cuando se expanda la sección de recursos
+    setTimeout(() => {
+      const uploadArea = activityDiv.querySelector(".file-upload-area");
+      if (uploadArea && !uploadArea.classList.contains("drag-setup")) {
+        this.setupDragAndDropForElement(uploadArea);
+        uploadArea.classList.add("drag-setup");
+      }
+    }, 100);
 
     // Initialize rich text editor for this activity
     setTimeout(() => {
@@ -1208,7 +1210,16 @@ class EnglishClassPlanner {
   }
 
   addLinkResourceToActivity(activityElement, name, url) {
-    const linksList = activityElement.querySelector(".link-resources-list");
+    const linksList = activityElement.querySelector(
+      ".link-resources-list-inline"
+    );
+
+    // Verificar que el contenedor existe
+    if (!linksList) {
+      console.error("No se encontró el contenedor de enlaces");
+      return;
+    }
+
     const linkId = "link_" + Date.now();
 
     const linkItem = document.createElement("div");
@@ -1216,14 +1227,14 @@ class EnglishClassPlanner {
     linkItem.dataset.linkId = linkId;
 
     linkItem.innerHTML = `
-            <div class="link-resource-info">
-                <span class="link-resource-name">${name}</span>
-                <a href="${url}" target="_blank" class="link-resource-url">${this.getDomainFromUrl(
+    <div class="link-resource-info">
+        <span class="link-resource-name">${name}</span>
+        <a href="${url}" target="_blank" class="link-resource-url">${this.getDomainFromUrl(
       url
     )}</a>
-            </div>
-            <button type="button" class="remove-link-resource" onclick="removeLinkResource(this)" title="Eliminar">×</button>
-        `;
+    </div>
+    <button type="button" class="btn-icon delete-icon" id="delete-icon" onclick="removeLinkResource(this)" title="Eliminar"></button>
+  `;
 
     linksList.appendChild(linkItem);
   }
@@ -2810,7 +2821,7 @@ function addLinkResource(button) {
     return;
   }
 
-  const linksList = activityItem.querySelector(".link-resources-list");
+  const linksList = activityItem.querySelector(".link-resources-list-inline");
   const linkId = "link_" + Date.now();
 
   const linkItem = document.createElement("div");
