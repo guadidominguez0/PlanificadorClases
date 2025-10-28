@@ -790,34 +790,35 @@ class EnglishClassPlanner {
           <div class="uploaded-files-inline"></div>
           <div class="link-resources-list-inline"></div>
           
-          <button type="button" class="add-resource-trigger" onclick="toggleResourceSection(this)">
-              Agregar recursos
-          </button>
-          <div class="resources-main-section">
-              <div class="resource-type-selector">
-                  <button type="button" class="resource-type-btn active" onclick="toggleResourceType(this, 'file')">
-                      Subir archivo
-                  </button>
-                  <button type="button" class="resource-type-btn" onclick="toggleResourceType(this, 'link')">
-                      Agregar enlace
-                  </button>
+          <div class="resource-quick-actions">
+              <button type="button" class="quick-action-btn file-btn" onclick="showFileUploadArea(this)">
+                  <span class="icon icon-upload"></span>
+                  Subir archivo
+              </button>
+              <button type="button" class="quick-action-btn link-btn" onclick="showLinkInput(this)">
+                  <span class="icon icon-link"></span>
+                  Agregar enlace
+              </button>
+          </div>
+          
+          <div class="file-upload-section" style="display: none;">
+              <div class="file-upload-area" onclick="triggerActivityFileInput(this)">
+                  <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleFileSelect(this)">
+                  <div class="file-upload-text">Subir archivos</div>
+                  <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
               </div>
-              
-              <div class="file-upload-section">
-                  <div class="file-upload-area" onclick="triggerFileInput(this)">
-                      <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" multiple onchange="handleFileSelect(this)">
-                      <div class="file-upload-text">Subir archivos</div>
-                      <div class="file-upload-hint">Arrastra archivos aquí o haz clic para seleccionar<br>Soporta: PDF, JPG, PNG, GIF (máx. 10MB)</div>
+              <button type="button" class="cancel-file-btn" onclick="hideFileUploadArea(this)">Cancelar</button>
+          </div>
+          
+          <div class="link-input-section" style="display: none;">
+              <div class="add-resource-section">
+                  <div class="resource-inputs">
+                      <input type="text" class="resource-name-input" placeholder="Nombre del recurso">
+                      <input type="url" class="resource-url-input" placeholder="https://...">
                   </div>
-              </div>
-              
-              <div class="link-upload-section" style="display: none;">
-                  <div class="add-resource-section">
-                      <div class="resource-inputs">
-                          <input type="text" class="resource-name-input" placeholder="Nombre del recurso">
-                          <input type="url" class="resource-url-input" placeholder="https://...">
-                      </div>
-                      <button type="button" class="add-resource-btn" onclick="addLinkResource(this)">Agregar Enlace</button>
+                  <div class="link-action-buttons">
+                      <button type="button" class="add-resource-btn" onclick="addLinkResource(this)">Agregar</button>
+                      <button type="button" class="cancel-link-btn" onclick="cancelLinkInput(this)">Cancelar</button>
                   </div>
               </div>
           </div>
@@ -1016,12 +1017,12 @@ class EnglishClassPlanner {
     this.makeActivityDraggable(activityDiv);
     this.makeActivitiesListSortable();
 
-    // Configurar drag and drop cuando se expanda la sección de recursos
+    // Configurar drag and drop para el área de carga de archivos
     setTimeout(() => {
       const uploadArea = activityDiv.querySelector(".file-upload-area");
-      if (uploadArea && !uploadArea.classList.contains("drag-setup")) {
-        this.setupDragAndDropForElement(uploadArea);
-        uploadArea.classList.add("drag-setup");
+      if (uploadArea && !uploadArea.hasAttribute('data-drag-setup')) {
+        this.setupDragAndDropForElement(uploadArea, 'activity');
+        uploadArea.setAttribute('data-drag-setup', 'true');
       }
     }, 100);
 
@@ -2728,7 +2729,8 @@ function toggleResourceType(button, type) {
 }
 
 function triggerFileInput(uploadArea) {
-  const fileInput = uploadArea.querySelector(".file-input");
+  const activityItem = uploadArea.closest(".activity-item");
+  const fileInput = activityItem.querySelector(".file-input");
   fileInput.click();
 }
 
@@ -2854,6 +2856,12 @@ function addLinkResource(button) {
   if (planner) {
     planner.showNotification("Enlace agregado exitosamente", "success");
   }
+
+  // Ocultar el formulario y mostrar los botones
+  const linkSection = activityItem.querySelector(".link-input-section");
+  const quickActions = activityItem.querySelector(".resource-quick-actions");
+  if (linkSection) linkSection.style.display = "none";
+  if (quickActions) quickActions.style.display = "flex";
 }
 
 function removeLinkResource(button) {
@@ -3465,6 +3473,63 @@ function closeNotification(closeButton) {
       }
     }, 300);
   }
+}
+
+function triggerActivityFileInput(button) {
+  const activityItem = button.closest(".activity-item");
+  const fileInput = activityItem.querySelector(".file-input");
+  fileInput.click();
+}
+
+function showFileUploadArea(button) {
+  const activityItem = button.closest(".activity-item");
+  const fileSection = activityItem.querySelector(".file-upload-section");
+  const quickActions = activityItem.querySelector(".resource-quick-actions");
+  
+  fileSection.style.display = "block";
+  quickActions.style.display = "none";
+  
+  // Configurar drag and drop si no está configurado
+  const uploadArea = fileSection.querySelector(".file-upload-area");
+  if (uploadArea && !uploadArea.hasAttribute('data-drag-setup')) {
+    if (planner) {
+      planner.setupDragAndDropForElement(uploadArea, 'activity');
+      uploadArea.setAttribute('data-drag-setup', 'true');
+    }
+  }
+}
+
+function hideFileUploadArea(button) {
+  const activityItem = button.closest(".activity-item");
+  const fileSection = activityItem.querySelector(".file-upload-section");
+  const quickActions = activityItem.querySelector(".resource-quick-actions");
+  
+  fileSection.style.display = "none";
+  quickActions.style.display = "flex";
+}
+
+function showLinkInput(button) {
+  const activityItem = button.closest(".activity-item");
+  const linkSection = activityItem.querySelector(".link-input-section");
+  const quickActions = activityItem.querySelector(".resource-quick-actions");
+  
+  linkSection.style.display = "block";
+  quickActions.style.display = "none";
+}
+
+function cancelLinkInput(button) {
+  const activityItem = button.closest(".activity-item");
+  const linkSection = activityItem.querySelector(".link-input-section");
+  const quickActions = activityItem.querySelector(".resource-quick-actions");
+  
+  linkSection.style.display = "none";
+  quickActions.style.display = "flex";
+  
+  // Limpiar inputs
+  const nameInput = activityItem.querySelector(".resource-name-input");
+  const urlInput = activityItem.querySelector(".resource-url-input");
+  if (nameInput) nameInput.value = "";
+  if (urlInput) urlInput.value = "";
 }
 
 // Inicializar al cargar la página
