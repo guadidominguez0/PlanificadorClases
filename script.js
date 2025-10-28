@@ -433,17 +433,15 @@ class EnglishClassPlanner {
 
     fileItem.innerHTML = `
             <div class="file-info">
-              <button class="btn-icon drag-handle" id="drag-handle" title="Mover">⋮⋮</button>
+              <button type="button" class="btn-icon drag-handle" id="drag-handle" title="Mover">⋮⋮</button>
                 <div class="file-details">
                     <span class="file-name">${fileData.name}</span>
                     <span class="file-size">${fileSize}</span>
                 </div>
             </div>
             <div class="file-actions" id="file-actions">
-                <button class="btn-icon icon-fullscreen" id="icon-fullscreen" onclick="previewFile('${
-                  fileData.id
-                }')" title="Ver archivo"></button>
-                <button class="btn-icon delete-icon" id="delete-icon" onclick="${
+                <button type="button" class="btn-icon icon-fullscreen" id="icon-fullscreen" onclick="event.stopPropagation(); previewFile('${fileData.id}')" title="Ver archivo"></button>
+                <button type="button" class="btn-icon delete-icon" id="delete-icon" onclick="event.stopPropagation(); ${
                   type === "homework" ? "removeHomeworkFile" : "removeFile"
                 }(this, '${fileData.id}')" title="Eliminar">
                 </button>
