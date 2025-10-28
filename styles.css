@@ -2080,7 +2080,6 @@ activity-item ul {
     gap: 0.5rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
-    width: 100%;
 }
 
 .add-resource-trigger:hover {
@@ -2178,7 +2177,7 @@ activity-item ul {
 }
 
 .add-resource-btn {
-    background: #787774;
+    background: #37352f;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -2190,10 +2189,6 @@ activity-item ul {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.add-resource-btn:hover {
-    background: #37352f;
 }
 
 .link-resources-list {
