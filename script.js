@@ -1181,6 +1181,46 @@ class EnglishClassPlanner {
     this.showNotification("Clase cargada para edición", "info");
   }
 
+  deleteClass(classId) {
+    if (confirm("¿Estás seguro de que deseas eliminar esta clase?")) {
+      const classData = this.classes.find((c) => c.id === classId);
+      
+      if (classData) {
+        // Eliminar archivos asociados a las actividades
+        classData.activities.forEach((activity) => {
+          if (activity.files) {
+            activity.files.forEach((file) => {
+              this.fileStorage.delete(file.id);
+            });
+          }
+        });
+        
+        // Eliminar archivos asociados a la tarea
+        if (classData.homeworkFiles) {
+          classData.homeworkFiles.forEach((file) => {
+            this.fileStorage.delete(file.id);
+          });
+        }
+        
+        // Eliminar la clase del array
+        this.classes = this.classes.filter((c) => c.id !== classId);
+        
+        // Guardar cambios
+        this.saveClasses();
+        this.saveFileStorage();
+        
+        // Cerrar el modal si está abierto
+        this.closeClassDetailModal();
+        
+        // Re-renderizar la lista de clases
+        this.renderClasses();
+        
+        this.showNotification("Clase eliminada exitosamente", "success");
+        this.showStorageInfo();
+      }
+    }
+  }
+
   // Creación o selección del curso
   createCourse(courseName) {
     if (!courseName.trim()) {
