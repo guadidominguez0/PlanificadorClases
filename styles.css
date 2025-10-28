@@ -511,6 +511,13 @@ textarea {
     color: darkgray;
 }
 
+#compartir,
+#descargar,
+#copiar {
+    width: 30px;
+    background: #37352f;
+}
+
 #drag-handle {
     background-color: white;
     border: 0px solid;

@@ -905,29 +905,30 @@ class EnglishClassPlanner {
         : { html: "", text: "" };
       const text = textContent.text;
 
-      if (text) {
-        const files = [];
-        const links = [];
+      const files = [];
+      const links = [];
 
-        element.querySelectorAll(".file-item").forEach((fileEl) => {
-          const fileId = fileEl.dataset.fileId;
-          const fileData = this.fileStorage.get(fileId);
-          if (fileData) {
-            files.push({
-              id: fileId,
-              name: fileData.name,
-              type: fileData.type,
-              size: fileData.size,
-            });
-          }
-        });
+      element.querySelectorAll(".file-item").forEach((fileEl) => {
+        const fileId = fileEl.dataset.fileId;
+        const fileData = this.fileStorage.get(fileId);
+        if (fileData) {
+          files.push({
+            id: fileId,
+            name: fileData.name,
+            type: fileData.type,
+            size: fileData.size,
+          });
+        }
+      });
 
-        element.querySelectorAll(".link-resource-item").forEach((linkEl) => {
-          const name = linkEl.querySelector(".link-resource-name").textContent;
-          const url = linkEl.querySelector(".link-resource-url").href;
-          links.push({ name, url });
-        });
+      element.querySelectorAll(".link-resource-item").forEach((linkEl) => {
+        const name = linkEl.querySelector(".link-resource-name").textContent;
+        const url = linkEl.querySelector(".link-resource-url").href;
+        links.push({ name, url });
+      });
 
+      // Validar que tenga al menos texto, archivo o link
+      if (text || files.length > 0 || links.length > 0) {
         activities.push({ type, text, files, links });
         activities[activities.length - 1].textHtml = textContent.html;
       }
@@ -1072,6 +1073,9 @@ class EnglishClassPlanner {
     const classData = this.classes.find((c) => c.id === id);
     if (!classData) return;
 
+    // Cerrar el modal de detalle si está abierto
+    this.closeClassDetailModal();
+
     this.isEditing = true;
     this.editingClassId = id;
     this.showCancelButton();
@@ -1204,12 +1208,11 @@ class EnglishClassPlanner {
 
   getRandomColor() {
     const colors = [
-      "#3b82f6",
-      "#ef4444",
-      "#22c55e",
-      "#f59e0b",
-      "#8b5cf6",
-      "#06b6d4",
+      "#705844ff",
+      "#5e885cff",
+      "#3d4c66ff",
+      "#7b3636ff",
+      "#53407fff",
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   }
