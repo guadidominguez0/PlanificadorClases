@@ -2573,7 +2573,7 @@ function toggleHomeworkResources() {
 
   if (resourceSection.classList.contains("active")) {
     resourceSection.classList.remove("active");
-    trigger.innerHTML = "Agregar recursos para la tarea";
+    trigger.innerHTML = "Agregar recursos";
   } else {
     resourceSection.classList.add("active");
     trigger.innerHTML = "Ocultar recursos";
@@ -2702,7 +2702,7 @@ function toggleResourceSection(button) {
 
   if (resourceSection.classList.contains("active")) {
     resourceSection.classList.remove("active");
-    button.innerHTML = "Agregar recursos para esta actividad";
+    button.innerHTML = "Agregar recursos";
   } else {
     resourceSection.classList.add("active");
     button.innerHTML = "Ocultar recursos";
