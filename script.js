@@ -62,17 +62,27 @@ class EnglishClassPlanner {
 
   showStorageInfo() {
     const classesSize = JSON.stringify(this.classes).length;
-    const filesSize = JSON.stringify(
-      Object.fromEntries(this.fileStorage)
-    ).length;
+    const filesSize = JSON.stringify(Object.fromEntries(this.fileStorage)).length;
     const totalSize = classesSize + filesSize;
+    const totalMB = totalSize / 1024 / 1024;
+    const percentUsed = (totalMB / 5) * 100;
 
     console.log("📊 Información de almacenamiento:");
     console.log(`- Clases: ${(classesSize / 1024).toFixed(2)} KB`);
     console.log(`- Archivos: ${(filesSize / 1024).toFixed(2)} KB`);
-    console.log(`- Total: ${(totalSize / 1024).toFixed(2)} KB`);
+    console.log(`- Total: ${(totalSize / 1024).toFixed(2)} KB (${percentUsed.toFixed(1)}% de 5MB)`);
     console.log(`- Clases guardadas: ${this.classes.length}`);
     console.log(`- Archivos guardados: ${this.fileStorage.size}`);
+
+    // Mostrar advertencia si está cerca del límite
+    if (percentUsed > 80) {
+      this.showNotification(
+        "⚠️ Almacenamiento casi lleno",
+        `Has usado ${percentUsed.toFixed(1)}% del espacio disponible (${totalMB.toFixed(2)}MB de 5MB). Considera exportar y eliminar datos antiguos.`,
+        "warning",
+        10000
+      );
+    }
 
     const classCountEl = document.getElementById("classCount");
     const fileCountEl = document.getElementById("fileCount");
@@ -81,7 +91,7 @@ class EnglishClassPlanner {
     if (classCountEl) classCountEl.textContent = this.classes.length;
     if (fileCountEl) fileCountEl.textContent = this.fileStorage.size;
     if (storageSizeEl)
-      storageSizeEl.textContent = `${(totalSize / 1024).toFixed(2)} KB`;
+      storageSizeEl.textContent = `${totalMB.toFixed(2)} MB / 5 MB`;
   }
 
   exportData() {
@@ -100,9 +110,8 @@ class EnglishClassPlanner {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `english-classes-backup-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
+    a.download = `english-classes-backup-${new Date().toISOString().split("T")[0]
+      }.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -209,11 +218,36 @@ class EnglishClassPlanner {
   }
 
   saveFileStorage() {
-    const fileObject = {};
-    this.fileStorage.forEach((value, key) => {
-      fileObject[key] = value;
-    });
-    localStorage.setItem("englishClassFiles", JSON.stringify(fileObject));
+    try {
+      const fileObject = {};
+      this.fileStorage.forEach((value, key) => {
+        fileObject[key] = value;
+      });
+
+      const fileString = JSON.stringify(fileObject);
+      const sizeInMB = (fileString.length / 1024 / 1024).toFixed(2);
+
+      // Verificar si excede los 4.5MB (dejar margen de seguridad)
+      if (fileString.length > 4.5 * 1024 * 1024) {
+        throw new Error(`Los archivos ocupan ${sizeInMB}MB. El límite es ~5MB.`);
+      }
+
+      localStorage.setItem("englishClassFiles", fileString);
+    } catch (error) {
+      if (error.name === 'QuotaExceededError' || error.message.includes('límite')) {
+        this.showNotification(
+          "⚠️ Almacenamiento lleno",
+          "Has alcanzado el límite de 5MB. Exporta tus datos y elimina archivos antiguos para liberar espacio.",
+          "error",
+          8000
+        );
+        // Revertir el último archivo agregado
+        throw error;
+      } else {
+        console.error("Error al guardar archivos:", error);
+        throw error;
+      }
+    }
   }
 
   loadCourses() {
@@ -320,7 +354,8 @@ class EnglishClassPlanner {
 
     if (file.size > maxSize) {
       this.showNotification(
-        "El archivo es demasiado grande (máx. 10MB)",
+        "Archivo demasiado grande",
+        "El tamaño máximo es 10MB por archivo",
         "warning"
       );
       return;
@@ -337,22 +372,46 @@ class EnglishClassPlanner {
       return;
     }
 
+    // Calcular tamaño actual del almacenamiento
+    const currentSize = JSON.stringify(Object.fromEntries(this.fileStorage)).length;
+    const estimatedNewSize = currentSize + (file.size * 1.37); // Base64 aumenta ~37%
+
+    if (estimatedNewSize > 4.5 * 1024 * 1024) {
+      this.showNotification(
+        "⚠️ Sin espacio suficiente",
+        `Este archivo haría que superes el límite de 5MB. Espacio usado: ${(currentSize / 1024 / 1024).toFixed(2)}MB`,
+        "error",
+        8000
+      );
+      return;
+    }
+
     const fileId = this.generateFileId();
     const reader = new FileReader();
 
     reader.onload = (e) => {
-      const fileData = {
-        id: fileId,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: e.target.result,
-      };
+      try {
+        const fileData = {
+          id: fileId,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: e.target.result,
+        };
 
-      this.fileStorage.set(fileId, fileData);
-      this.saveFileStorage();
-      this.addFileToActivity(activityElement, fileData);
-      this.showNotification("Archivo subido exitosamente", "success");
+        this.fileStorage.set(fileId, fileData);
+        this.saveFileStorage();
+        this.addFileToActivity(activityElement, fileData);
+        this.showNotification("Archivo subido exitosamente", "success");
+      } catch (error) {
+        // Si falla, eliminar el archivo del Map
+        this.fileStorage.delete(fileId);
+        console.error("Error al guardar archivo:", error);
+      }
+    };
+
+    reader.onerror = () => {
+      this.showNotification("Error al leer el archivo", "error");
     };
 
     reader.readAsDataURL(file);
@@ -363,7 +422,8 @@ class EnglishClassPlanner {
 
     if (file.size > maxSize) {
       this.showNotification(
-        "El archivo es demasiado grande (máx. 10MB)",
+        "Archivo demasiado grande",
+        "El tamaño máximo es 10MB por archivo",
         "warning"
       );
       return;
@@ -380,22 +440,45 @@ class EnglishClassPlanner {
       return;
     }
 
+    // Calcular tamaño actual del almacenamiento
+    const currentSize = JSON.stringify(Object.fromEntries(this.fileStorage)).length;
+    const estimatedNewSize = currentSize + (file.size * 1.37);
+
+    if (estimatedNewSize > 4.5 * 1024 * 1024) {
+      this.showNotification(
+        "⚠️ Sin espacio suficiente",
+        `Este archivo haría que superes el límite de 5MB. Espacio usado: ${(currentSize / 1024 / 1024).toFixed(2)}MB`,
+        "error",
+        8000
+      );
+      return;
+    }
+
     const fileId = this.generateFileId();
     const reader = new FileReader();
 
     reader.onload = (e) => {
-      const fileData = {
-        id: fileId,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: e.target.result,
-      };
+      try {
+        const fileData = {
+          id: fileId,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: e.target.result,
+        };
 
-      this.fileStorage.set(fileId, fileData);
-      this.saveFileStorage();
-      this.addFileToHomework(fileData);
-      this.showNotification("Archivo subido exitosamente", "success");
+        this.fileStorage.set(fileId, fileData);
+        this.saveFileStorage();
+        this.addFileToHomework(fileData);
+        this.showNotification("Archivo subido exitosamente", "success");
+      } catch (error) {
+        this.fileStorage.delete(fileId);
+        console.error("Error al guardar archivo:", error);
+      }
+    };
+
+    reader.onerror = () => {
+      this.showNotification("Error al leer el archivo", "error");
     };
 
     reader.readAsDataURL(file);
@@ -441,9 +524,8 @@ class EnglishClassPlanner {
             </div>
             <div class="file-actions" id="file-actions">
                 <button type="button" class="btn-icon icon-fullscreen" id="icon-fullscreen" onclick="event.stopPropagation(); previewFile('${fileData.id}')" title="Ver archivo"></button>
-                <button type="button" class="btn-icon delete-icon" id="delete-icon" onclick="event.stopPropagation(); ${
-                  type === "homework" ? "removeHomeworkFile" : "removeFile"
-                }(this, '${fileData.id}')" title="Eliminar">
+                <button type="button" class="btn-icon delete-icon" id="delete-icon" onclick="event.stopPropagation(); ${type === "homework" ? "removeHomeworkFile" : "removeFile"
+      }(this, '${fileData.id}')" title="Eliminar">
                 </button>
             </div>
         `;
@@ -483,7 +565,7 @@ class EnglishClassPlanner {
         return (
           e.clientY <=
           sibling.getBoundingClientRect().top +
-            sibling.getBoundingClientRect().height / 2
+          sibling.getBoundingClientRect().height / 2
         );
       });
 
@@ -636,8 +718,8 @@ class EnglishClassPlanner {
                 <div class="files-section">
                     <div class="files-grid">
                         ${activity.files
-                          .map((file) => this.createFileDisplay(file))
-                          .join("")}
+              .map((file) => this.createFileDisplay(file))
+              .join("")}
                     </div>
                 </div>`
             : "";
@@ -648,21 +730,20 @@ class EnglishClassPlanner {
                 <div class="links-section">
                     <div class="links-grid">
                         ${activity.links
-                          .map(
-                            (link) => `
-                            <a href="${
-                              link.url
-                            }" target="_blank" class="link-item">
+              .map(
+                (link) => `
+                            <a href="${link.url
+                  }" target="_blank" class="link-item">
                                 <span class="link-icon"></span>
                                 <span class="link-text">
                                     <span class="link-name">${link.name}</span>
                                     <span class="link-url">${this.getDomainFromUrl(
-                                      link.url
-                                    )}</span>
+                    link.url
+                  )}</span>
                                 </span>
                             </a>`
-                          )
-                          .join("")}
+              )
+              .join("")}
                     </div>
                 </div>`
             : "";
@@ -671,16 +752,14 @@ class EnglishClassPlanner {
             <div class="activity-card">
                 <div class="activity-header">
                     <span class="activity-number">${index + 1}.</span>
-                    <span class="activity-type-badge type-${
-                      activity.type
-                    }">${this.capitalizeFirstLetter(activity.type)}</span>
+                    <span class="activity-type-badge type-${activity.type
+          }">${this.capitalizeFirstLetter(activity.type)}</span>
                 </div>
                 <div class="activity-content">
-                  <div class="activity-text">${
-                    activity.textHtml
-                      ? activity.textHtml
-                      : activity.text.replace(/\n/g, "<br>")
-                  }</div>
+                  <div class="activity-text">${activity.textHtml
+            ? activity.textHtml
+            : activity.text.replace(/\n/g, "<br>")
+          }</div>
                     ${filesHtml}
                     ${linksHtml}
                 </div>
@@ -696,8 +775,8 @@ class EnglishClassPlanner {
               <div class="files-title">Archivos de tarea</div>
               <div class="files-grid">
                   ${classData.homeworkFiles
-                    .map((file) => this.createFileDisplay(file))
-                    .join("")}
+          .map((file) => this.createFileDisplay(file))
+          .join("")}
               </div>
           </div>`
         : "";
@@ -709,19 +788,19 @@ class EnglishClassPlanner {
               <div class="files-title">Enlaces de tarea</div>
               <div class="links-grid">
                   ${classData.homeworkLinks
-                    .map(
-                      (link) => `
+          .map(
+            (link) => `
                       <a href="${link.url}" target="_blank" class="link-item">
                           <span class="link-icon"></span>
                           <span class="link-text">
                               <span class="link-name">${link.name}</span>
                               <span class="link-url">${this.getDomainFromUrl(
-                                link.url
-                              )}</span>
+              link.url
+            )}</span>
                           </span>
                       </a>`
-                    )
-                    .join("")}
+          )
+          .join("")}
               </div>
           </div>`
         : "";
@@ -734,11 +813,10 @@ class EnglishClassPlanner {
                   <h3 class="homework-title">Tarea</h3>
               </div>
               <div class="homework-content">
-                  ${
-                    classData.homeworkHtml
-                      ? classData.homeworkHtml
-                      : classData.homework.replace(/\n/g, "<br>")
-                  }
+                  ${classData.homeworkHtml
+        ? classData.homeworkHtml
+        : classData.homework.replace(/\n/g, "<br>")
+      }
               </div>
               ${homeworkFilesHtml}
               ${homeworkLinksHtml}
@@ -1184,7 +1262,7 @@ class EnglishClassPlanner {
   deleteClass(classId) {
     if (confirm("¿Estás seguro de que deseas eliminar esta clase?")) {
       const classData = this.classes.find((c) => c.id === classId);
-      
+
       if (classData) {
         // Eliminar archivos asociados a las actividades
         classData.activities.forEach((activity) => {
@@ -1194,27 +1272,27 @@ class EnglishClassPlanner {
             });
           }
         });
-        
+
         // Eliminar archivos asociados a la tarea
         if (classData.homeworkFiles) {
           classData.homeworkFiles.forEach((file) => {
             this.fileStorage.delete(file.id);
           });
         }
-        
+
         // Eliminar la clase del array
         this.classes = this.classes.filter((c) => c.id !== classId);
-        
+
         // Guardar cambios
         this.saveClasses();
         this.saveFileStorage();
-        
+
         // Cerrar el modal si está abierto
         this.closeClassDetailModal();
-        
+
         // Re-renderizar la lista de clases
         this.renderClasses();
-        
+
         this.showNotification("Clase eliminada exitosamente", "success");
         this.showStorageInfo();
       }
@@ -1449,34 +1527,28 @@ class EnglishClassPlanner {
         const summaryText = summaryItems.join(" • ");
 
         return `
-                <div class="class-card ${
-                  classesForDisplay.length > 1 ? "fade-in" : ""
-                }" data-class-id="${classData.id}">
-                    <div class="class-card-header" onclick="toggleClassExpansion('${
-                      classData.id
-                    }', event)">
+                <div class="class-card ${classesForDisplay.length > 1 ? "fade-in" : ""
+          }" data-class-id="${classData.id}">
+                    <div class="class-card-header" onclick="toggleClassExpansion('${classData.id
+          }', event)">
                         <div class="class-date-info">
                             <div class="class-date-badge">
-                                <span class="class-weekday">${
-                                  dateInfo.weekday
-                                }</span>
-                                <span class="class-date">${
-                                  dateInfo.dayNumber
-                                }</span>
+                                <span class="class-weekday">${dateInfo.weekday
+          }</span>
+                                <span class="class-date">${dateInfo.dayNumber
+          }</span>
                             </div>
                             <div class="class-meta">
                                 <span class="class-summary">${summaryText}</span>
                             </div>
                         </div>
                         <div class="class-header-actions">
-                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${
-                              classData.id
-                            }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
+                            <button onclick="event.stopPropagation(); planner.openClassDetailModal('${classData.id
+          }')" class="btn-icon view-full-btn" title="Ver en pantalla completa">
                                 <span class="icon-fullscreen"></span>
                             </button>
-                            <button class="btn-icon expand-toggle-btn" title="Expandir" onclick="toggleClassExpansion('${
-                              classData.id
-                            }', event)">
+                            <button class="btn-icon expand-toggle-btn" title="Expandir" onclick="toggleClassExpansion('${classData.id
+          }', event)">
                                 <span class="icon-expand"></span>
                             </button>
                         </div>
@@ -1485,137 +1557,123 @@ class EnglishClassPlanner {
                     <div class="class-card-content" style="display: none;">
                         <div class="activities-container">
                             ${classData.activities
-                              .map((activity, index) => {
-                                const filesHtml =
-                                  activity.files && activity.files.length > 0
-                                    ? `
+            .map((activity, index) => {
+              const filesHtml =
+                activity.files && activity.files.length > 0
+                  ? `
                                         <div class="resources-section">
                                             <div class="files-grid">
                                                 ${activity.files
-                                                  .map((file) =>
-                                                    this.createFileDisplay(file)
-                                                  )
-                                                  .join("")}
+                    .map((file) =>
+                      this.createFileDisplay(file)
+                    )
+                    .join("")}
                                             </div>
                                         </div>`
-                                    : "";
+                  : "";
 
-                                const linksHtml =
-                                  activity.links && activity.links.length > 0
-                                    ? `
+              const linksHtml =
+                activity.links && activity.links.length > 0
+                  ? `
                                         <div class="resources-section">
                                             <div class="links-grid">
                                                 ${activity.links
-                                                  .map(
-                                                    (link) => `
+                    .map(
+                      (link) => `
                                                         <a href="${link.url}" target="_blank" class="link-item">
                                                             <span class="link-icon"></span>
                                                             <span class="link-text">
                                                                 <span class="link-name">${link.name}</span>
                                                             </span>
                                                         </a>`
-                                                  )
-                                                  .join("")}
+                    )
+                    .join("")}
                                             </div>
                                         </div>`
-                                    : "";
+                  : "";
 
-                                return `
+              return `
                                     <div class="activity-item">
                                         <div class="activity-header">
-                                            <span class="activity-number">${
-                                              index + 1
-                                            }.</span>
-                                            <span class="activity-type-badge type-${
-                                              activity.type
-                                            }">${this.capitalizeFirstLetter(
-                                  activity.type
-                                )}</span>
+                                            <span class="activity-number">${index + 1
+                }.</span>
+                                            <span class="activity-type-badge type-${activity.type
+                }">${this.capitalizeFirstLetter(
+                  activity.type
+                )}</span>
                                         </div>
                                         <div class="activity-content">
-                                            <div class="activity-text">${
-                                              activity.textHtml
-                                                ? activity.textHtml
-                                                : activity.text.replace(
-                                                    /\n/g,
-                                                    "<br>"
-                                                  )
-                                            }</div>
+                                            <div class="activity-text">${activity.textHtml
+                  ? activity.textHtml
+                  : activity.text.replace(
+                    /\n/g,
+                    "<br>"
+                  )
+                }</div>
                                             ${filesHtml}
                                             ${linksHtml}
                                         </div>
                                     </div>
                                 `;
-                              })
-                              .join("")}
+            })
+            .join("")}
                         </div>
                         
-                        ${
-                          classData.homework
-                            ? `
+                        ${classData.homework
+            ? `
                             <div class="homework-preview">
                                 <div class="homework-header">
                                     <span class="homework-icon"></span>
                                     <span class="homework-title">Tarea</span>
                                 </div>
                                 <div class="homework-content-preview">
-                                    ${
-                                      classData.homeworkHtml
-                                        ? classData.homeworkHtml
-                                        : classData.homework.replace(
-                                            /\n/g,
-                                            "<br>"
-                                          )
-                                    }
+                                    ${classData.homeworkHtml
+              ? classData.homeworkHtml
+              : classData.homework.replace(
+                /\n/g,
+                "<br>"
+              )
+            }
                                 </div>
-                                ${
-                                  classData.homeworkFiles &&
-                                  classData.homeworkFiles.length > 0
-                                    ? `<div class="homework-resources">
-                                        <span class="resources-count">${
-                                          classData.homeworkFiles.length
-                                        } archivo${
-                                        classData.homeworkFiles.length !== 1
-                                          ? "s"
-                                          : ""
-                                      }</span>
+                                ${classData.homeworkFiles &&
+              classData.homeworkFiles.length > 0
+              ? `<div class="homework-resources">
+                                        <span class="resources-count">${classData.homeworkFiles.length
+              } archivo${classData.homeworkFiles.length !== 1
+                ? "s"
+                : ""
+              }</span>
                                     </div>`
-                                    : ""
-                                }
-                                ${
-                                  classData.homeworkLinks &&
-                                  classData.homeworkLinks.length > 0
-                                    ? `<div class="homework-resources">
-                                        <span class="resources-count">${
-                                          classData.homeworkLinks.length
-                                        } enlace${
-                                        classData.homeworkLinks.length !== 1
-                                          ? "s"
-                                          : ""
-                                      }</span>
+              : ""
+            }
+                                ${classData.homeworkLinks &&
+              classData.homeworkLinks.length > 0
+              ? `<div class="homework-resources">
+                                        <span class="resources-count">${classData.homeworkLinks.length
+              } enlace${classData.homeworkLinks.length !== 1
+                ? "s"
+                : ""
+              }</span>
                                     </div>`
-                                    : ""
-                                }
+              : ""
+            }
                             </div>`
-                            : ""
-                        }
+            : ""
+          }
                         
                         <div class="class-card-actions">
-                            <button onclick="event.stopPropagation(); planner.editClass('${
-                              classData.id
-                            }')" class="btn-action btn-edit">
+                            <button onclick="event.stopPropagation(); planner.editClass('${classData.id
+          }')" class="btn-action btn-edit">
                                 <span class="btn-icon edit-icon"></span>
                                 <span class="btn-text">Editar</span>
                             </button>
-                            <button onclick="event.stopPropagation(); planner.shareClass('${
-                              classData.id
-                            }')" class="btn-action btn-share">
+                            <button onclick="event.stopPropagation(); planner.shareClass('${classData.id
+          }')" class="btn-action btn-share">
                                 <span class="btn-icon share-icon"></span>
                                 <span class="btn-text">Compartir</span>
                             </button>
-                            <button onclick="event.stopPropagation(); planner.deleteClass('${
-                              classData.id
-                            }')" class="btn-action btn-delete">
+                            <button onclick="event.stopPropagation(); planner.deleteClass('${classData.id
+          }')" class="btn-action btn-delete">
                                 <span class="btn-icon delete-icon"></span>
                                 <span class="btn-text">Eliminar</span>
                             </button>
@@ -1728,9 +1786,8 @@ class EnglishClassPlanner {
       "editor-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
 
     const editorHTML = `
-            <div class="rich-text-container ${
-              isHomework ? "homework-rich-text-container" : ""
-            }">
+            <div class="rich-text-container ${isHomework ? "homework-rich-text-container" : ""
+      }">
                 <div id="${editorId}" data-placeholder="${placeholder}"></div>
             </div>
         `;
@@ -1887,9 +1944,8 @@ class EnglishClassPlanner {
 
     text += `ACTIVIDADES:\n`;
     classData.activities.forEach((activity, index) => {
-      text += `${index + 1}. [${activity.type.toUpperCase()}] ${
-        activity.text
-      }\n`;
+      text += `${index + 1}. [${activity.type.toUpperCase()}] ${activity.text
+        }\n`;
       if (activity.files && activity.files.length > 0) {
         text += `   Archivos: ${activity.files
           .map((f) => f.name)
@@ -1933,9 +1989,8 @@ class EnglishClassPlanner {
     let htmlContent = `
         <html>
         <head>
-            <title>English Class - ${
-              this.formatDate(classData.date).full
-            }</title>
+            <title>English Class - ${this.formatDate(classData.date).full
+      }</title>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
@@ -3263,33 +3318,27 @@ function renderCoursesList() {
   container.innerHTML = sortedCourses
     .map(
       (course) => `
-        <div class="course-item" data-course-id="${
-          course.id
+        <div class="course-item" data-course-id="${course.id
         }" onclick="selectCourse('${course.id}')">
-            <div class="course-header" style="border-left: 4px solid ${
-              course.color
-            };">
+            <div class="course-header" style="border-left: 4px solid ${course.color
+        };">
                 <div class="course-name">${course.name}</div>
-                <div class="course-count">${
-                  planner.getClassesByCourse(course.id).length
-                } clases</div>
+                <div class="course-count">${planner.getClassesByCourse(course.id).length
+        } clases</div>
             </div>
             <div class="course-actions">
-              <button onclick="event.stopPropagation(); createClassInCourse('${
-                course.id
-              }')" class="btn btn-secondary btn-small">
+              <button onclick="event.stopPropagation(); createClassInCourse('${course.id
+        }')" class="btn btn-secondary btn-small">
                   <span class="icon icon-plus"></span>
                   <span class="btn-text">Nueva Clase</span>
               </button>
-              <button onclick="event.stopPropagation(); editCourseDialog('${
-                course.id
-              }')" class="btn btn-secondary btn-small">
+              <button onclick="event.stopPropagation(); editCourseDialog('${course.id
+        }')" class="btn btn-secondary btn-small">
                   <span class="icon icon-edit"></span>
                   <span class="btn-text">Editar</span>
               </button>
-              <button onclick="event.stopPropagation(); planner.deleteCourse('${
-                course.id
-              }')" class="btn btn-danger btn-small">
+              <button onclick="event.stopPropagation(); planner.deleteCourse('${course.id
+        }')" class="btn btn-danger btn-small">
                   <span class="icon icon-delete"></span>
                   <span class="btn-text">Eliminar</span>
               </button>
@@ -3523,10 +3572,10 @@ function showFileUploadArea(button) {
   const activityItem = button.closest(".activity-item");
   const fileSection = activityItem.querySelector(".file-upload-section");
   const quickActions = activityItem.querySelector(".resource-quick-actions");
-  
+
   fileSection.style.display = "block";
   quickActions.style.display = "none";
-  
+
   // Configurar drag and drop si no está configurado
   const uploadArea = fileSection.querySelector(".file-upload-area");
   if (uploadArea && !uploadArea.hasAttribute('data-drag-setup')) {
@@ -3541,7 +3590,7 @@ function hideFileUploadArea(button) {
   const activityItem = button.closest(".activity-item");
   const fileSection = activityItem.querySelector(".file-upload-section");
   const quickActions = activityItem.querySelector(".resource-quick-actions");
-  
+
   fileSection.style.display = "none";
   quickActions.style.display = "flex";
 }
@@ -3550,7 +3599,7 @@ function showLinkInput(button) {
   const activityItem = button.closest(".activity-item");
   const linkSection = activityItem.querySelector(".link-input-section");
   const quickActions = activityItem.querySelector(".resource-quick-actions");
-  
+
   linkSection.style.display = "block";
   quickActions.style.display = "none";
 }
@@ -3559,10 +3608,10 @@ function cancelLinkInput(button) {
   const activityItem = button.closest(".activity-item");
   const linkSection = activityItem.querySelector(".link-input-section");
   const quickActions = activityItem.querySelector(".resource-quick-actions");
-  
+
   linkSection.style.display = "none";
   quickActions.style.display = "flex";
-  
+
   // Limpiar inputs
   const nameInput = activityItem.querySelector(".resource-name-input");
   const urlInput = activityItem.querySelector(".resource-url-input");
