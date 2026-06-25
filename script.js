@@ -97,7 +97,7 @@ class EnglishClassPlanner {
   exportData() {
     const data = {
       classes: this.classes,
-      courses: this.courses, // <- AGREGAR ESTA LÍNEA
+      courses: this.courses,
       files: Object.fromEntries(this.fileStorage),
       exportDate: new Date().toISOString(),
       version: "1.0",
@@ -176,9 +176,9 @@ class EnglishClassPlanner {
     ) {
       this.fileStorage.clear();
       this.classes = [];
-      this.courses = []; // <- AGREGAR ESTA LÍNEA
+      this.courses = [];
       this.saveClasses();
-      this.saveCourses(); // <- AGREGAR ESTA LÍNEA
+      this.saveCourses();
       this.saveFileStorage();
       this.renderClasses();
 
@@ -275,10 +275,6 @@ class EnglishClassPlanner {
       e.preventDefault();
       this.addClass();
     });
-
-    // document.getElementById("searchBox").addEventListener("input", (e) => {
-    //   this.filterClasses(e.target.value);
-    // });
 
     document.getElementById("fileModal").addEventListener("click", (e) => {
       if (e.target.id === "fileModal") {
